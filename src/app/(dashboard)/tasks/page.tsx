@@ -1,0 +1,140 @@
+'use client';
+
+import { useState } from 'react';
+import Link from 'next/link';
+import { Search, CheckSquare, Calendar, Flag } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { useTeams } from '@/hooks/useTeam';
+import { useTasks } from '@/hooks/useTasks';
+import { formatDate } from '@/lib/utils';
+import type { Task } from '@/lib/types';
+
+const priorityConfig: Record<Task['priority'], { label: string; className: string }> = {
+  low: { label: 'Düşük', className: 'bg-gray-100 text-gray-600 border-gray-200' },
+  medium: { label: 'Orta', className: 'bg-amber-50 text-amber-700 border-amber-200' },
+  high: { label: 'Yüksek', className: 'bg-red-50 text-red-700 border-red-200' },
+};
+
+const statusLabels: Record<Task['status'], string> = {
+  todo: 'Yapılacak',
+  in_progress: 'Devam Ediyor',
+  done: 'Tamamlandı',
+  on_hold: 'Beklemede',
+};
+
+function TeamTaskSection({ teamId, teamName, search }: { teamId: string; teamName: string; search: string }) {
+  const { data: tasks, isLoading } = useTasks(teamId);
+
+  const filtered = (tasks ?? []).filter((t) =>
+    !search || t.title.toLowerCase().includes(search.toLowerCase())
+  );
+
+  if (!isLoading && filtered.length === 0) return null;
+
+  return (
+    <div className="space-y-2">
+      <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+        {teamName}
+      </h2>
+      <div className="rounded-xl border border-border bg-white overflow-hidden">
+        {isLoading ? (
+          <div className="divide-y">
+            {[...Array(2)].map((_, i) => (
+              <div key={i} className="flex items-center gap-4 px-4 py-3">
+                <Skeleton className="h-4 w-48" />
+                <Skeleton className="h-6 w-20 ml-auto" />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="divide-y divide-border">
+            {filtered.map((task) => (
+              <Link
+                key={task.id}
+                href={`/teams/${teamId}/tasks/${task.id}`}
+                className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
+              >
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{task.title}</p>
+                  <p className="text-xs text-muted-foreground">{statusLabels[task.status]}</p>
+                </div>
+                <Badge variant="outline" className={priorityConfig[task.priority].className}>
+                  <Flag className="mr-1 h-2.5 w-2.5" />
+                  {priorityConfig[task.priority].label}
+                </Badge>
+                {task.due_date && (
+                  <Badge variant="outline" className="hidden sm:flex text-muted-foreground">
+                    <Calendar className="mr-1 h-2.5 w-2.5" />
+                    {formatDate(task.due_date)}
+                  </Badge>
+                )}
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default function TasksPage() {
+  const [search, setSearch] = useState('');
+  const { data: teams, isLoading: teamsLoading } = useTeams();
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Görevlerim</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Tüm ekiplerdeki görevler</p>
+        </div>
+      </div>
+
+      <div className="relative max-w-sm">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          placeholder="Görev ara..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="pl-9"
+        />
+      </div>
+
+      {teamsLoading && (
+        <div className="space-y-4">
+          {[...Array(2)].map((_, i) => (
+            <div key={i} className="space-y-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-24 rounded-xl" />
+            </div>
+          ))}
+        </div>
+      )}
+
+      {!teamsLoading && (!teams || teams.length === 0) && (
+        <EmptyState
+          icon={CheckSquare}
+          title="Henüz görev yok"
+          description="Önce bir ekip oluşturun veya ekibe katılın."
+          action={{ label: 'Ekip Oluştur', href: '/teams/create' }}
+        />
+      )}
+
+      {!teamsLoading && teams && teams.length > 0 && (
+        <div className="space-y-6">
+          {teams.map((team) => (
+            <TeamTaskSection
+              key={team.id}
+              teamId={team.id}
+              teamName={team.name}
+              search={search}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

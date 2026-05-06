@@ -1,0 +1,118 @@
+import { NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
+
+function getFallbackFullName(user: {
+  email?: string | null;
+  user_metadata?: { full_name?: string | null };
+}) {
+  return user.user_metadata?.full_name ?? user.email?.split('@')[0] ?? null;
+}
+
+export async function GET() {
+  try {
+    const supabase = createClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const admin = createAdminClient();
+    const { data: existingProfile, error: selectError } = await admin
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    if (selectError) {
+      return NextResponse.json({ error: selectError.message }, { status: 400 });
+    }
+
+    if (existingProfile) {
+      return NextResponse.json({ profile: existingProfile });
+    }
+
+    const { data: createdProfile, error: insertError } = await admin
+      .from('profiles')
+      .insert({
+        id: user.id,
+        email: user.email ?? '',
+        full_name: getFallbackFullName(user),
+        avatar_url: user.user_metadata?.avatar_url ?? null,
+      })
+      .select()
+      .single();
+
+    if (insertError) {
+      return NextResponse.json({ error: insertError.message }, { status: 400 });
+    }
+
+    return NextResponse.json({ profile: createdProfile });
+  } catch {
+    return NextResponse.json({ error: 'Sunucu hatasi' }, { status: 500 });
+  }
+}
+
+export async function PATCH(request: Request) {
+  try {
+    const supabase = createClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { fullName } = await request.json();
+    const trimmedFullName = String(fullName ?? '').trim();
+
+    if (trimmedFullName.length < 2) {
+      return NextResponse.json({ error: 'Ad soyad en az 2 karakter olmali' }, { status: 400 });
+    }
+
+    if (trimmedFullName.length > 50) {
+      return NextResponse.json({ error: 'Ad soyad en fazla 50 karakter olabilir' }, { status: 400 });
+    }
+
+    const admin = createAdminClient();
+
+    const { data: profile, error: profileError } = await admin
+      .from('profiles')
+      .upsert(
+        {
+          id: user.id,
+          email: user.email ?? '',
+          full_name: trimmedFullName,
+          avatar_url: user.user_metadata?.avatar_url ?? null,
+        },
+        { onConflict: 'id' }
+      )
+      .select()
+      .single();
+
+    if (profileError) {
+      return NextResponse.json({ error: profileError.message }, { status: 400 });
+    }
+
+    const { error: authUpdateError } = await admin.auth.admin.updateUserById(user.id, {
+      user_metadata: {
+        ...user.user_metadata,
+        full_name: trimmedFullName,
+      },
+    });
+
+    if (authUpdateError) {
+      return NextResponse.json({ error: authUpdateError.message }, { status: 400 });
+    }
+
+    return NextResponse.json({ profile });
+  } catch {
+    return NextResponse.json({ error: 'Sunucu hatasi' }, { status: 500 });
+  }
+}

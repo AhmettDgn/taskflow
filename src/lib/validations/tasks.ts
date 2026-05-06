@@ -1,0 +1,18 @@
+import { z } from 'zod';
+
+export const createTaskSchema = z.object({
+  title: z
+    .string()
+    .min(1, 'Başlık boş olamaz')
+    .max(200, 'Başlık en fazla 200 karakter olabilir'),
+  description: z.string().max(2000, 'Açıklama en fazla 2000 karakter olabilir').optional(),
+  status: z.enum(['todo', 'in_progress', 'done', 'on_hold']),
+  priority: z.enum(['low', 'medium', 'high']),
+  due_date: z.string().optional(),
+  assignee_ids: z.array(z.string()).optional(),
+});
+
+export const updateTaskSchema = createTaskSchema.partial();
+
+export type CreateTaskFormValues = z.infer<typeof createTaskSchema>;
+export type UpdateTaskFormValues = z.infer<typeof updateTaskSchema>;
