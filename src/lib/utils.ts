@@ -5,9 +5,16 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatDate(date: string | null): string {
+export function formatDate(date: string | null | undefined): string {
   if (!date) return '';
-  return new Intl.DateTimeFormat('tr-TR', { dateStyle: 'medium' }).format(new Date(date));
+
+  const parsedDate = new Date(date);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return '';
+  }
+
+  return new Intl.DateTimeFormat('tr-TR', { dateStyle: 'medium' }).format(parsedDate);
 }
 
 export function getInitials(name: string | null): string {

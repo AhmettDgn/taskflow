@@ -1,11 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { Calendar } from 'lucide-react';
+import { Calendar, Loader2, Trash2 } from 'lucide-react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { Task } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
+import { useDeleteTask } from '@/hooks/useTasks';
 import {
   Tooltip,
   TooltipContent,
@@ -35,6 +36,7 @@ const priorityLabel: Record<Task['priority'], string> = {
 };
 
 export function TaskCard({ task, teamId, isDragging = false, isOverlay = false }: TaskCardProps) {
+  const { mutateAsync: deleteTask, isPending: isDeleting } = useDeleteTask(teamId);
   const {
     attributes,
     listeners,
@@ -50,6 +52,22 @@ export function TaskCard({ task, teamId, isDragging = false, isOverlay = false }
 
   const dragging = isDragging || isSortableDragging;
 
+  const handleDeletePointerDown = (event: React.PointerEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+  };
+
+  const handleDeleteClick = async (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (isDeleting || !window.confirm('Bu görevi silmek istediğinize emin misiniz?')) {
+      return;
+    }
+
+    await deleteTask(task.id);
+  };
+
   return (
     <div
       ref={isOverlay ? undefined : setNodeRef}
@@ -64,6 +82,25 @@ export function TaskCard({ task, teamId, isDragging = false, isOverlay = false }
           : 'hover:shadow-card-hover hover:-translate-y-px cursor-grab active:cursor-grabbing'
       )}
     >
+      {!isOverlay && (
+        <button
+          type="button"
+          onPointerDown={handleDeletePointerDown}
+          onClick={handleDeleteClick}
+          disabled={isDeleting}
+          aria-label="Görevi sil"
+          className={cn(
+            'absolute right-2 top-2 z-10 rounded-md p-1 text-muted-foreground transition-all',
+            'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100',
+            'hover:bg-destructive/10 hover:text-destructive',
+            'focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+            isDeleting && 'opacity-100'
+          )}
+        >
+          {isDeleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+        </button>
+      )}
+
       {/* Priority stripe */}
       <span
         className={cn(
@@ -75,7 +112,8 @@ export function TaskCard({ task, teamId, isDragging = false, isOverlay = false }
       {/* Title — clickable link, pointerdown doesn't fire drag when not moved */}
       <Link
         href={`/teams/${teamId}/tasks/${task.id}`}
-        className="block text-sm font-medium leading-snug text-foreground hover:text-primary transition-colors pl-3"
+        prefetch={false}
+        className="block pr-7 text-sm font-medium leading-snug text-foreground transition-colors hover:text-primary pl-3"
         onPointerDown={(e) => e.stopPropagation()}
         onClick={(e) => dragging && e.preventDefault()}
         tabIndex={-1}

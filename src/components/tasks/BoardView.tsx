@@ -147,27 +147,41 @@ export function BoardView({ tasks, teamId }: BoardViewProps) {
     setActiveTask(task ?? null);
   };
 
-  const handleDragOver = ({ active, over }: DragOverEvent) => {
-    if (!over) return;
-    const overId = over.id as string;
-    const isColumn = TASK_STATUSES.some((s) => s.value === overId);
-    if (!isColumn) return;
+  const resolveDropStatus = (overId: string | null, taskItems: Task[]) => {
+    if (!overId) return null;
 
-    const newStatus = overId as TaskStatus;
-    setLocalTasks((prev) =>
-      prev.map((t) => (t.id === active.id ? { ...t, status: newStatus } : t))
-    );
+    if (TASK_STATUSES.some((status) => status.value === overId)) {
+      return overId as TaskStatus;
+    }
+
+    return taskItems.find((task) => task.id === overId)?.status ?? null;
+  };
+
+  const handleDragOver = ({ active, over }: DragOverEvent) => {
+    const newStatus = resolveDropStatus(over?.id as string | null, localTasks);
+    if (!newStatus) return;
+
+    setLocalTasks((prev) => {
+      const activeTask = prev.find((task) => task.id === active.id);
+
+      if (!activeTask || activeTask.status === newStatus) {
+        return prev;
+      }
+
+      return prev.map((task) =>
+        task.id === active.id ? { ...task, status: newStatus } : task
+      );
+    });
   };
 
   const handleDragEnd = ({ active, over }: DragEndEvent) => {
     setActiveTask(null);
-    if (!over) return;
+    const newStatus = resolveDropStatus(over?.id as string | null, localTasks);
+    if (!newStatus) {
+      setLocalTasks(tasks);
+      return;
+    }
 
-    const overId = over.id as string;
-    const isColumn = TASK_STATUSES.some((s) => s.value === overId);
-    if (!isColumn) return;
-
-    const newStatus = overId as TaskStatus;
     const originalTask = tasks.find((t) => t.id === active.id);
 
     if (originalTask && originalTask.status !== newStatus) {

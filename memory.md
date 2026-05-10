@@ -216,3 +216,157 @@ NEXT_PUBLIC_APP_URL
 - [x] Uygulama service worker kullanmamasina ragmen tarayicidaki eski kayitlar chunk 404/HMR hatasi uretiyordu
 - [x] `providers.tsx` icine eski service worker registration'larini temizleyen koruma eklendi
 - [x] Eski cache anahtarlari siliniyor ve gerekli durumda sayfa otomatik yenileniyor
+
+---
+
+## Canliya Alma Plani [BASLATILDI]
+
+Bu plan adim adim uygulanacak ve her tamamlanan madde burada isaretlenecek.
+Supabase kullanmaya devam edilebilir. Bu proje statik export degil; Next.js server runtime,
+middleware, API routes ve Supabase SSR cookie akisi nedeniyle Node.js uzerinde calismalidir.
+
+### 0. Mevcut Durum Tespiti [KISMEN TAMAMLANDI]
+- [x] Repo, env ornegi, Supabase client yapisi ve API route gereksinimleri incelendi
+- [x] Supabase kullaniminin canli ortamda devam edebilecegi dogrulandi
+- [x] Projenin Node.js process gerektirdigi dogrulandi (salt static hosting uygun degil)
+- [x] Canli oncesi production build denemesi yapildi
+- [x] Production build temiz geciyor
+
+Not:
+- Google Fonts kaynakli build engeli sistem font stack'e gecilerek cozuldu
+- `src/app/layout.tsx` icindeki `next/font/google` bagimliligi kaldirildi
+- `src/styles/globals.css` icinde sistem font stack tanimlandi
+
+### 1. Yayina Cikis Mimarisi [PLAN]
+- [x] Sunucunun hazir oldugu bilgisi alindi
+- [x] SSH key ile erisim oldugu bilgisi alindi
+- [ ] SSH baglanti hedefi netlestirilecek (`kullanici@IP`)
+- [ ] Sunucu isletim sistemi, Node kurulu mu, nginx var mi kesfedilecek
+- [ ] Hedef sunucu tipi netlestirilecek: VPS / dedicated Linux server / panel hosting
+- [ ] Sunucuda Node.js 20 LTS kurulacak
+- [ ] Paket yoneticisi secilecek: `npm` veya `pnpm`
+- [ ] Process manager secilecek: `pm2` veya `systemd`
+- [ ] Reverse proxy kurulacak: `nginx`
+- [ ] SSL sertifikasi kurulacak: `Let's Encrypt`
+
+Karar notu:
+- Eger sunucuya Node process acabiliyorsak mevcut Next.js yapisi direkt deploy edilir.
+- Eger sadece PHP/static tarzinda bir hosting varsa bu proje o sekilde dogrudan calismaz; ayri Node sunucusu gerekir.
+
+### 2. Supabase Devam Plani [PLAN]
+- [ ] Mevcut Supabase projesi production icin kullanilacak mi karar verilecek
+- [ ] Production `Site URL` ayarlanacak
+- [ ] Production `Redirect URLs` ayarlanacak:
+  - `https://alanadi.com/auth/callback`
+  - gerekirse `https://www.alanadi.com/auth/callback`
+- [ ] Google OAuth kullaniminda production redirect URL'leri Supabase ve Google Console tarafinda guncellenecek
+- [ ] Realtime, Auth, Database ve RLS policy'lerin production ortaminda aynen calistigi dogrulanacak
+- [ ] `SUPABASE_SERVICE_ROLE_KEY` sadece sunucu ortaminda tutulacak; istemciye cikmayacak
+
+Supabase kullanimi neden devam edebilir:
+- Auth, Postgres, Realtime ve API ihtiyaci zaten harici servis olarak Supabase tarafinda cozuluyor
+- Uygulamanin kendi sunucusunda sadece Next.js app calisacak
+- Ek bir veritabani tasimasi zorunlu degil
+
+Eger Supabase'e erisim olmayacaksa alternatif plan:
+- [ ] Yeni Supabase projesi ac
+- [ ] `001_create_tables.sql` migration calistir
+- [ ] `002_triggers_notifications.sql` migration calistir
+- [ ] Production env degerlerini yeni proje ile degistir
+- [ ] Auth provider ve callback URL'leri yeni projeye gore tekrar ayarla
+- [ ] Test kullanicisi, ekip, gorev ve yorum akislariyla smoke test yap
+
+### 3. Ortam Degiskenleri [PLAN]
+- [ ] Production environment variables hazirlanacak
+- [ ] Asagidaki degiskenler sunucuya tanimlanacak:
+  - `NEXT_PUBLIC_SUPABASE_URL`
+  - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+  - `SUPABASE_SERVICE_ROLE_KEY`
+  - `NEXT_PUBLIC_APP_URL`
+- [ ] `NEXT_PUBLIC_APP_URL` production domain ile birebir ayni olacak
+- [ ] Gizli anahtarlar `.env.local` icinde repoya yazilmayacak
+- [ ] Sunucuda env dosya izinleri kisitlanacak
+
+### 4. Kod ve Build Kontrolleri [PLAN]
+- [x] `npm run lint` daha once temiz gecti
+- [x] `npm run build` temiz gecirildi
+- [x] `npm run start` ile production mod lokal boot testi yapildi
+- [x] Google Font engeli cozuldu
+- [x] Placeholder API route'lar gozden gecirildi:
+  - `src/app/api/tasks/route.ts`
+  - `src/app/api/auth/route.ts`
+- [ ] Kullanilmiyorsa bu route'lar kaldirilacak veya future stub oldugu acik sekilde not edilecek
+- [ ] `README.md` production deploy adimlariyla eslenecek
+
+Not:
+- `npm run start` production modda basarili sekilde ayaga kalkti
+- `src/app/api/tasks/route.ts` ve `src/app/api/auth/route.ts` icin aktif kullanim izi bulunmadi
+- Bu iki route su an deploy blocker degil; ancak production oncesi ya kaldirilmali ya da bilincli placeholder olarak belgelenmeli
+
+### 5. Sunucu Kurulum Adimlari [PLAN]
+- [ ] Sunucuda proje klasoru olusturulacak
+- [ ] Repo clone veya CI/CD checkout yapilacak
+- [ ] `npm install` veya `pnpm install --frozen-lockfile` calistirilacak
+- [ ] Environment dosyasi tanimlanacak
+- [ ] `npm run build` calistirilacak
+- [ ] `npm run start` veya PM2 config ile servis ayaga kaldirilacak
+- [ ] `nginx` reverse proxy `127.0.0.1:3000` ya yonlendirilecek
+- [ ] `domain` DNS A/AAAA kayitlari sunucuya yonlendirilecek
+- [ ] SSL aktif edilip HTTP -> HTTPS redirect acilacak
+
+Ornek runtime beklentisi:
+- App portu: `3000`
+- Public URL: `https://alanadi.com`
+- Reverse proxy: `nginx -> localhost:3000`
+
+### 6. Uygulama Duzeyi Smoke Testleri [PLAN]
+- [ ] Login calisiyor
+- [ ] Register calisiyor
+- [ ] Google login calisiyor
+- [ ] `/auth/callback` dogru donuyor
+- [ ] Dashboard aciliyor
+- [ ] Team olusturma calisiyor
+- [ ] Team join calisiyor
+- [ ] Task create/update/delete calisiyor
+- [ ] Board drag-and-drop calisiyor
+- [ ] List view aciliyor
+- [ ] Comment create/delete calisiyor
+- [ ] Notification realtime geliyor
+- [ ] Profile update calisiyor
+- [ ] Mobile nav ve responsive temel akislar kontrol ediliyor
+
+### 7. Production Sertlestirme [PLAN]
+- [ ] `NODE_ENV=production` ile calistigi dogrulanacak
+- [ ] Sunucu firewall sadece gerekli portlari acacak
+- [ ] SSH anahtar girisi kullanilacak, sifreli giris kisitlanacak
+- [ ] Log toplama yontemi belirlenecek (`pm2 logs`, `journalctl`, panel logs)
+- [ ] Otomatik restart politikasi ayarlanacak
+- [ ] Yedekleme/plana uygun geri donus notlari yazilacak
+
+### 8. Izleme ve Bakim [PLAN]
+- [ ] Hata loglari duzenli takip edilecek
+- [ ] Supabase Dashboard: Auth, Database, Realtime ve API usage kontrol edilecek
+- [ ] Sunucu disk/RAM/CPU takibi kurulacak
+- [ ] Deploy sonrasi 24 saatlik kontrol listesi uygulanacak
+
+### 9. Bu Turda Tamamlananlar [ONAY]
+- [x] Canliya alma icin teknik inceleme yapildi
+- [x] Supabase ile devam edilebilecegi belirlendi
+- [x] Node.js tabanli deployment gereksinimi netlestirildi
+- [x] Ilk production build kontrolu yapildi
+- [x] Build blocker tespit edildi: Google Fonts (`Inter`) fetch bagimliligi
+- [x] Google Fonts bagimliligi kaldirildi
+- [x] Production build basarili alindi
+- [x] Production start testi basarili oldu
+- [x] Placeholder API route incelemesi yapildi
+- [x] Sunucunun hazir ve SSH ile erisilebilir oldugu bilgisi plana islendi
+- [x] Plan `memory.md` icine yazildi
+
+### 10. Sonraki Uygulama Sirasi [ONERILEN]
+1. SSH ile sunucuya baglanip ortam kesfini yapalim
+2. Sunucu deploy seklini netlestirelim (`pm2 + nginx` onerilir)
+3. Production env degerlerini yerlestirelim
+4. Domain + SSL + Supabase callback ayarlarini tamamlayalim
+5. Placeholder API route'lari temizleyelim ya da netlestirelim
+6. `README.md` production adimlariyla guncelleyelim
+7. Smoke testleri gecip canliya cikis yapalim
