@@ -97,7 +97,8 @@ const config: Config = {
         'card-hover': '0 4px 12px 0 rgb(0 0 0 / 0.08)',
       },
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
+        sans: ['var(--font-sans)', 'sans-serif'],
+        mono: ['var(--font-mono)', 'monospace'],
       },
     },
   },

@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { createClient } from '@/lib/supabase/client';
+import { getApiPath } from '@/lib/api';
 import { QUERY_KEYS, STALE_TIME } from '@/lib/constants';
 import type { Profile } from '@/lib/types';
 
@@ -10,7 +11,7 @@ export function useProfile() {
   return useQuery<Profile>({
     queryKey: [QUERY_KEYS.profile],
     queryFn: async () => {
-      const response = await fetch('/api/profile', {
+      const response = await fetch(getApiPath('/profile'), {
         credentials: 'include',
       });
 
@@ -30,7 +31,7 @@ export function useUpdateProfile() {
 
   return useMutation({
     mutationFn: async ({ fullName }: { fullName: string }) => {
-      const response = await fetch('/api/profile', {
+      const response = await fetch(getApiPath('/profile'), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

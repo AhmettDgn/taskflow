@@ -2,6 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { getApiPath } from '@/lib/api';
 import { createClient } from '@/lib/supabase/client';
 import { getAuthContext } from '@/lib/supabase/auth-helpers';
 import { QUERY_KEYS, STALE_TIME } from '@/lib/constants';
@@ -69,7 +70,7 @@ export function useCreateTeam() {
 
   return useMutation({
     mutationFn: async (name: string) => {
-      const res = await fetch('/api/teams', {
+      const res = await fetch(getApiPath('/teams'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -95,7 +96,7 @@ export function useJoinTeam() {
 
   return useMutation({
     mutationFn: async (inviteCode: string) => {
-      const res = await fetch('/api/teams/join', {
+      const res = await fetch(getApiPath('/teams/join'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -145,7 +146,7 @@ export function useInviteByEmail(teamId: string) {
 
   return useMutation({
     mutationFn: async (email: string) => {
-      const res = await fetch(`/api/teams/${teamId}/invite`, {
+      const res = await fetch(getApiPath(`/teams/${teamId}/invite`), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

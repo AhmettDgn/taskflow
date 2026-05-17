@@ -3,14 +3,11 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { getAppOrigin } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
 
 function getRedirectTo() {
-  const baseUrl =
-    process.env.NEXT_PUBLIC_APP_URL ||
-    (typeof window !== 'undefined' ? window.location.origin : '');
-
-  return `${baseUrl}/auth/callback?next=/dashboard`;
+  return `${getAppOrigin()}/auth/callback?next=/dashboard`;
 }
 
 function GoogleIcon() {
