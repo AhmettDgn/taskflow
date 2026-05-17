@@ -323,8 +323,19 @@ export function useDeleteTask(teamId: string) {
       if (error) throw error;
       return taskId;
     },
-    onSuccess: (taskId) => {
+    onMutate: async (taskId) => {
       markLocalMutation(taskId);
+      await queryClient.cancelQueries({ queryKey: [QUERY_KEYS.tasks, teamId] });
+      const previous = queryClient.getQueryData<Task[]>([QUERY_KEYS.tasks, teamId]);
+
+      queryClient.setQueryData<Task[]>([QUERY_KEYS.tasks, teamId], (old) =>
+        old?.filter((task) => task.id !== taskId) ?? []
+      );
+      queryClient.removeQueries({ queryKey: [QUERY_KEYS.task, taskId] });
+
+      return { previous };
+    },
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.tasks, teamId] });
       toast.success('Görev silindi');
     },

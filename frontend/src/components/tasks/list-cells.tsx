@@ -100,6 +100,7 @@ export function TitleCell({ task, teamId }: TitleCellProps) {
     <div className="group flex items-center gap-2">
       <Link
         href={`/teams/${teamId}/tasks/${task.id}`}
+        prefetch={false}
         className="font-medium hover:text-primary"
       >
         {task.title}

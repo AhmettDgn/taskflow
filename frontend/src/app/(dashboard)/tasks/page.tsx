@@ -55,6 +55,7 @@ function TeamTaskSection({ teamId, teamName, search }: { teamId: string; teamNam
               <Link
                 key={task.id}
                 href={`/teams/${teamId}/tasks/${task.id}`}
+                prefetch={false}
                 className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
               >
                 <div className="flex-1 min-w-0">
