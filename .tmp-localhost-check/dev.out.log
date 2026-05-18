@@ -1,0 +1,26 @@
+
+> taskflow-workspace@ dev:localhost C:\Users\HP\Desktop\TaskFlow
+> node ./scripts/dev-localhost.mjs "--turbo"
+
+[frontend] 
+[frontend] > frontend@0.1.0 dev C:\Users\HP\Desktop\TaskFlow\frontend
+[frontend] > node ./scripts/dev.mjs "--" "--hostname" "localhost" "--port" "3121" "--turbo"
+[frontend] 
+[backend] 
+[backend] > backend@0.1.0 dev C:\Users\HP\Desktop\TaskFlow\backend
+[backend] > node ./scripts/dev.mjs
+[backend] 
+[backend] TaskFlow backend listening on http://localhost:5121
+[backend] Proxying /api/* requests to http://localhost:3121
+[frontend]   ▲ Next.js 14.2.35 (turbo)
+[frontend]   - Local:        http://localhost:3121
+[frontend]   - Network:      http://[::1]:3121
+[frontend]   - Environments: .env.local
+[frontend] 
+[frontend]  ✓ Starting...
+[frontend] Creating turbopack project { dir: 'C:\\Users\\HP\\Desktop\\TaskFlow\\frontend', testMode: true }
+[frontend]  ✓ Compiled in 157ms
+[frontend]  ✓ Ready in 981ms
+[frontend]  ○ Compiling /login ...
+[frontend]  ✓ Compiled /login in 1517ms
+[frontend]  GET /login 200 in 1708ms

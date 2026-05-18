@@ -7,6 +7,7 @@
   },
   "scripts": {
     "dev": "node ./scripts/dev.mjs",
+    "dev:localhost": "node ./scripts/dev-localhost.mjs",
     "build": "pnpm --filter frontend build && pnpm --filter backend build",
     "build:frontend": "pnpm --filter frontend build",
     "build:backend": "pnpm --filter backend build",
