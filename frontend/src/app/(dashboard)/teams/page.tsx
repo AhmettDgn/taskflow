@@ -12,19 +12,19 @@ export default function TeamsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold">Ekipler</h1>
           <p className="text-sm text-muted-foreground">Üye olduğunuz ekipler</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" asChild>
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+          <Button variant="outline" asChild className="w-full sm:w-auto">
             <Link href="/teams/join">
               <UserPlus className="mr-2 h-4 w-4" />
               Ekibe Katıl
             </Link>
           </Button>
-          <Button asChild>
+          <Button asChild className="w-full sm:w-auto">
             <Link href="/teams/create">
               <Plus className="mr-2 h-4 w-4" />
               Ekip Oluştur
@@ -35,8 +35,8 @@ export default function TeamsPage() {
 
       {isLoading && (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {[...Array(3)].map((_, i) => (
-            <Skeleton key={i} className="h-32 rounded-xl" />
+          {[...Array(3)].map((_, index) => (
+            <Skeleton key={index} className="h-32 rounded-xl" />
           ))}
         </div>
       )}
@@ -50,11 +50,11 @@ export default function TeamsPage() {
           <p className="mt-1 text-sm text-muted-foreground">
             Yeni bir ekip oluşturun veya davet koduyla katılın.
           </p>
-          <div className="mt-4 flex gap-2">
-            <Button variant="outline" asChild size="sm">
+          <div className="mt-4 flex w-full max-w-xs flex-col gap-2 sm:w-auto sm:max-w-none sm:flex-row">
+            <Button variant="outline" asChild size="sm" className="w-full sm:w-auto">
               <Link href="/teams/join">Ekibe Katıl</Link>
             </Button>
-            <Button asChild size="sm">
+            <Button asChild size="sm" className="w-full sm:w-auto">
               <Link href="/teams/create">Ekip Oluştur</Link>
             </Button>
           </div>

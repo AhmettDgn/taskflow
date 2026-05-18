@@ -20,4 +20,4 @@ fi
 
 cd "${ROOT_DIR}/backend"
 
-HOST="${HOST:-127.0.0.1}" PORT="${PORT:-5021}" pnpm --dir "${ROOT_DIR}" --filter backend start
+HOST="${HOST:-127.0.0.1}" PORT="${PORT:-5021}" corepack pnpm --dir "${ROOT_DIR}" --filter backend start

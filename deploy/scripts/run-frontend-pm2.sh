@@ -20,4 +20,4 @@ fi
 
 cd "${ROOT_DIR}/frontend"
 
-pnpm --dir "${ROOT_DIR}" --filter frontend start -- --hostname "${FRONTEND_HOST:-127.0.0.1}" --port "${FRONTEND_PORT:-3021}"
+corepack pnpm --dir "${ROOT_DIR}" --filter frontend start -- --hostname "${FRONTEND_HOST:-127.0.0.1}" --port "${FRONTEND_PORT:-3021}"

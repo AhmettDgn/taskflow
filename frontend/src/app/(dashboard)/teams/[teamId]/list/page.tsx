@@ -61,16 +61,18 @@ function parseOptions(value: string) {
 function ColumnsMenu({
   teamId,
   columns,
+  triggerClassName,
 }: {
   teamId: string;
   columns: ListColumn[];
+  triggerClassName?: string;
 }) {
   const { setColumnVisible, resetTeam } = useListColumnsStore();
 
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="outline" size="sm">
+        <Button variant="outline" size="sm" className={cn('w-full justify-center sm:w-auto', triggerClassName)}>
           <Columns className="mr-2 h-4 w-4" />
           Sütunlar
         </Button>
@@ -355,15 +357,26 @@ export default function ListPage({ params }: { params: { teamId: string } }) {
   return (
     <>
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-muted-foreground">{filtered.length} görev</p>
-          <div className="flex items-center gap-2">
-            {hydrated && <ColumnsMenu teamId={teamId} columns={config.columns} />}
-            <Button variant="outline" size="sm" onClick={() => setDialogState({ mode: 'add' })}>
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+            {hydrated && (
+              <ColumnsMenu
+                teamId={teamId}
+                columns={config.columns}
+                triggerClassName="sm:w-auto"
+              />
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full sm:w-auto"
+              onClick={() => setDialogState({ mode: 'add' })}
+            >
               <Plus className="mr-2 h-4 w-4" />
               Sütun Ekle
             </Button>
-            <Button asChild size="sm">
+            <Button asChild size="sm" className="w-full sm:w-auto">
               <Link href={`/teams/${teamId}/tasks/new`}>
                 <Plus className="mr-2 h-4 w-4" />
                 Yeni Görev

@@ -34,10 +34,10 @@ interface BoardViewProps {
 }
 
 const columnHeader: Record<TaskStatus, { dot: string; bg: string; border: string }> = {
-  todo:        { dot: 'bg-slate-400',  bg: 'bg-slate-50/80',   border: 'border-slate-200/80' },
-  in_progress: { dot: 'bg-blue-500',   bg: 'bg-blue-50/60',    border: 'border-blue-200/60'  },
-  done:        { dot: 'bg-emerald-500', bg: 'bg-emerald-50/60', border: 'border-emerald-200/60' },
-  on_hold:     { dot: 'bg-amber-400',  bg: 'bg-amber-50/60',   border: 'border-amber-200/60' },
+  todo: { dot: 'bg-slate-400', bg: 'bg-slate-50/80', border: 'border-slate-200/80' },
+  in_progress: { dot: 'bg-blue-500', bg: 'bg-blue-50/60', border: 'border-blue-200/60' },
+  done: { dot: 'bg-emerald-500', bg: 'bg-emerald-50/60', border: 'border-emerald-200/60' },
+  on_hold: { dot: 'bg-amber-400', bg: 'bg-amber-50/60', border: 'border-amber-200/60' },
 };
 
 function Column({
@@ -53,7 +53,7 @@ function Column({
   tasks: Task[];
   teamId: string;
   openFormColumn: TaskStatus | null;
-  setOpenFormColumn: (v: TaskStatus | null) => void;
+  setOpenFormColumn: (value: TaskStatus | null) => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: colValue });
   const styles = columnHeader[colValue];
@@ -63,25 +63,24 @@ function Column({
       <div
         className={cn(
           'flex flex-col rounded-xl border p-3 transition-colors duration-150',
-          styles.bg, styles.border,
+          styles.bg,
+          styles.border,
           isOver && 'ring-2 ring-primary/30'
         )}
       >
-        {/* Header */}
         <div className="mb-3 flex items-center gap-2">
-          <span className={cn('h-2 w-2 rounded-full flex-shrink-0', styles.dot)} />
+          <span className={cn('h-2 w-2 flex-shrink-0 rounded-full', styles.dot)} />
           <h3 className="text-sm font-semibold text-foreground">{colLabel}</h3>
           <span className="ml-auto flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-white px-1.5 text-xs font-medium text-muted-foreground shadow-sm">
             {tasks.length}
           </span>
         </div>
 
-        {/* Drop zone */}
-        <SortableContext items={tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
+        <SortableContext items={tasks.map((task) => task.id)} strategy={verticalListSortingStrategy}>
           <div
             ref={setNodeRef}
             className={cn(
-              'flex flex-col gap-2 min-h-[3rem] rounded-lg transition-all duration-150',
+              'flex min-h-[3rem] flex-col gap-2 rounded-lg transition-all duration-150',
               isOver && 'bg-primary/5 p-1'
             )}
           >
@@ -91,14 +90,13 @@ function Column({
           </div>
         </SortableContext>
 
-        {/* Inline form or add button */}
         {openFormColumn === colValue ? (
           <div className="mt-2 animate-scale-in rounded-lg border border-border bg-white p-3 shadow-card">
             <div className="mb-2 flex items-center justify-between">
               <span className="text-xs font-medium text-muted-foreground">Yeni Görev</span>
               <button
                 onClick={() => setOpenFormColumn(null)}
-                className="rounded p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                className="rounded p-0.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
@@ -132,7 +130,6 @@ export function BoardView({ tasks, teamId }: BoardViewProps) {
 
   const { mutate: updateStatus } = useUpdateTaskStatus(teamId);
 
-  // Sync external tasks → local (when TanStack Query refetches)
   useEffect(() => {
     setLocalTasks(tasks);
   }, [tasks]);
@@ -143,7 +140,7 @@ export function BoardView({ tasks, teamId }: BoardViewProps) {
   );
 
   const handleDragStart = ({ active }: DragStartEvent) => {
-    const task = localTasks.find((t) => t.id === active.id);
+    const task = localTasks.find((item) => item.id === active.id);
     setActiveTask(task ?? null);
   };
 
@@ -161,14 +158,14 @@ export function BoardView({ tasks, teamId }: BoardViewProps) {
     const newStatus = resolveDropStatus(over?.id as string | null, localTasks);
     if (!newStatus) return;
 
-    setLocalTasks((prev) => {
-      const activeTask = prev.find((task) => task.id === active.id);
+    setLocalTasks((previous) => {
+      const activeTask = previous.find((task) => task.id === active.id);
 
       if (!activeTask || activeTask.status === newStatus) {
-        return prev;
+        return previous;
       }
 
-      return prev.map((task) =>
+      return previous.map((task) =>
         task.id === active.id ? { ...task, status: newStatus } : task
       );
     });
@@ -182,12 +179,11 @@ export function BoardView({ tasks, teamId }: BoardViewProps) {
       return;
     }
 
-    const originalTask = tasks.find((t) => t.id === active.id);
+    const originalTask = tasks.find((task) => task.id === active.id);
 
     if (originalTask && originalTask.status !== newStatus) {
       updateStatus({ taskId: active.id as string, status: newStatus });
     } else {
-      // Revert optimistic if same column
       setLocalTasks(tasks);
     }
   };
@@ -197,9 +193,9 @@ export function BoardView({ tasks, teamId }: BoardViewProps) {
     setLocalTasks(tasks);
   };
 
-  const columns = TASK_STATUSES.map((s) => ({
-    ...s,
-    tasks: localTasks.filter((t) => t.status === s.value),
+  const columns = TASK_STATUSES.map((status) => ({
+    ...status,
+    tasks: localTasks.filter((task) => task.status === status.value),
   }));
 
   return (
@@ -211,21 +207,22 @@ export function BoardView({ tasks, teamId }: BoardViewProps) {
       onDragEnd={handleDragEnd}
       onDragCancel={handleDragCancel}
     >
-      <div className="flex gap-4 overflow-x-auto pb-4">
-        {columns.map((col) => (
-          <Column
-            key={col.value}
-            colValue={col.value as TaskStatus}
-            colLabel={col.label}
-            tasks={col.tasks}
-            teamId={teamId}
-            openFormColumn={openFormColumn}
-            setOpenFormColumn={setOpenFormColumn}
-          />
-        ))}
+      <div className="min-w-0 overflow-x-auto overscroll-x-contain pb-4">
+        <div className="flex min-w-max gap-4">
+          {columns.map((column) => (
+            <Column
+              key={column.value}
+              colValue={column.value as TaskStatus}
+              colLabel={column.label}
+              tasks={column.tasks}
+              teamId={teamId}
+              openFormColumn={openFormColumn}
+              setOpenFormColumn={setOpenFormColumn}
+            />
+          ))}
+        </div>
       </div>
 
-      {/* Ghost overlay — shown while dragging */}
       <DragOverlay dropAnimation={null}>
         {activeTask && (
           <div className="rotate-1 scale-105 opacity-95">

@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
 import { getAppOrigin } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
 
@@ -77,15 +76,14 @@ export function GoogleAuthButton({
   };
 
   return (
-    <Button
+    <button
       type="button"
-      variant="outline"
-      className="w-full"
+      className="inline-flex h-10 w-full items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
       onClick={handleGoogleAuth}
       disabled={disabled || isLoading}
     >
       {isLoading ? <SpinnerIcon /> : <GoogleIcon />}
       {mode === 'login' ? 'Google ile Giris Yap' : 'Google ile Kayit Ol'}
-    </Button>
+    </button>
   );
 }

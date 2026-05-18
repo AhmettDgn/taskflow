@@ -1,113 +1,109 @@
 'use client';
 
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2 } from 'lucide-react';
-import { useForm } from 'react-hook-form';
-import { toast } from 'sonner';
-import { GoogleAuthButton } from '@/components/auth/GoogleAuthButton';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { createClient } from '@/lib/supabase/client';
-import { loginSchema, type LoginFormValues } from '@/lib/validations/auth';
+
+const inputClassName =
+  'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50';
+const labelClassName = 'text-sm font-medium leading-none';
+const buttonClassName =
+  'inline-flex h-10 w-full items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50';
+
+function isValidEmail(value: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
 
 export function LoginForm() {
-  const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
-  });
+  const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setErrorMessage('');
 
-  const onSubmit = async (values: LoginFormValues) => {
+    const normalizedEmail = email.trim();
+    if (!isValidEmail(normalizedEmail)) {
+      setErrorMessage('Gecerli bir e-posta adresi girin.');
+      return;
+    }
+
+    if (password.length < 6) {
+      setErrorMessage('Sifre en az 6 karakter olmalidir.');
+      return;
+    }
+
     setIsLoading(true);
+    const { createClient } = await import('@/lib/supabase/client');
     const supabase = createClient();
-
     const { error } = await supabase.auth.signInWithPassword({
-      email: values.email,
-      password: values.password,
+      email: normalizedEmail,
+      password,
     });
 
     if (error) {
-      toast.error(
+      setErrorMessage(
         error.message === 'Invalid login credentials'
-          ? 'E-posta veya sifre hatali'
+          ? 'E-posta veya sifre hatali.'
           : error.message
       );
       setIsLoading(false);
       return;
     }
 
-    toast.success('Giris basarili');
-    router.push('/dashboard');
-    router.refresh();
+    window.location.assign('/dashboard');
   };
 
   return (
-    <div className="space-y-4">
-      <GoogleAuthButton mode="login" disabled={isLoading} />
-
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t border-border" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-gray-50 px-2 text-muted-foreground">veya e-posta ile</span>
-        </div>
+    <form onSubmit={onSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <label htmlFor="email" className={labelClassName}>E-posta</label>
+        <input
+          id="email"
+          type="email"
+          placeholder="siz@ornek.com"
+          autoComplete="email"
+          disabled={isLoading}
+          className={inputClassName}
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+        />
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="email">E-posta</Label>
-          <Input
-            id="email"
-            type="email"
-            placeholder="siz@ornek.com"
-            autoComplete="email"
-            disabled={isLoading}
-            {...register('email')}
-          />
-          {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <label htmlFor="password" className={labelClassName}>Sifre</label>
+          <a href="/forgot-password" className="text-xs text-muted-foreground hover:text-primary">
+            Sifremi unuttum
+          </a>
         </div>
+        <input
+          id="password"
+          type="password"
+          autoComplete="current-password"
+          disabled={isLoading}
+          className={inputClassName}
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+        />
+      </div>
 
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="password">Sifre</Label>
-            <Link href="/forgot-password" className="text-xs text-muted-foreground hover:text-primary">
-              Sifremi unuttum
-            </Link>
-          </div>
-          <Input
-            id="password"
-            type="password"
-            autoComplete="current-password"
-            disabled={isLoading}
-            {...register('password')}
-          />
-          {errors.password && (
-            <p className="text-xs text-destructive">{errors.password.message}</p>
-          )}
-        </div>
-
-        <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Giris Yap
-        </Button>
-
-        <p className="text-center text-sm text-muted-foreground">
-          Hesabiniz yok mu?{' '}
-          <Link href="/register" className="font-medium text-primary hover:underline">
-            Hesap olusturun
-          </Link>
+      {errorMessage && (
+        <p className="rounded-md border border-destructive/20 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+          {errorMessage}
         </p>
-      </form>
-    </div>
+      )}
+
+      <button type="submit" className={buttonClassName} disabled={isLoading}>
+        {isLoading ? 'Giris yapiliyor...' : 'Giris Yap'}
+      </button>
+
+      <p className="text-center text-sm text-muted-foreground">
+        Hesabiniz yok mu?{' '}
+        <a href="/register" className="font-medium text-primary hover:underline">
+          Hesap olusturun
+        </a>
+      </p>
+    </form>
   );
 }

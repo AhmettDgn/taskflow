@@ -1,11 +1,21 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
 import { STALE_TIME } from '@/lib/constants';
 
-export function Providers({ children }: { children: React.ReactNode }) {
+type ProvidersProps = {
+  children: React.ReactNode;
+  withQueryClient?: boolean;
+  withToaster?: boolean;
+};
+
+export function Providers({
+  children,
+  withQueryClient = true,
+  withToaster = true,
+}: ProvidersProps) {
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -23,9 +33,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     setMounted(true);
 
-    // This app does not ship a service worker. If the browser has a stale
-    // registration from an older build, unregister it and clear its caches
-    // so dev chunks stop 404ing.
     if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
 
     void navigator.serviceWorker.getRegistrations().then(async (registrations) => {
@@ -42,10 +49,16 @@ export function Providers({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  return (
-    <QueryClientProvider client={queryClient}>
+  const content = (
+    <Fragment>
       {children}
-      {mounted && <Toaster richColors position="top-right" />}
-    </QueryClientProvider>
+      {mounted && withToaster ? <Toaster richColors position="top-right" /> : null}
+    </Fragment>
   );
+
+  if (!withQueryClient) {
+    return content;
+  }
+
+  return <QueryClientProvider client={queryClient}>{content}</QueryClientProvider>;
 }

@@ -89,12 +89,10 @@ export function Sidebar() {
     <TooltipProvider>
       <aside
         className={cn(
-          'flex flex-shrink-0 flex-col border-r border-border bg-white',
-          'transition-[width] duration-200 ease-spring',
-          !sidebarOpen ? 'hidden' : sidebarCollapsed ? 'w-[3.5rem]' : 'w-64'
+          'hidden flex-shrink-0 flex-col border-r border-border bg-white transition-[width] duration-200 ease-spring md:flex',
+          !sidebarOpen ? 'md:hidden' : sidebarCollapsed ? 'md:w-[3.5rem]' : 'md:w-64'
         )}
       >
-        {/* Logo */}
         <div
           className={cn(
             'flex h-14 items-center border-b border-border px-3',
@@ -116,8 +114,7 @@ export function Sidebar() {
           )}
         </div>
 
-        {/* Nav */}
-        <nav className={cn('flex-1 space-y-0.5 p-2 pt-3')}>
+        <nav className="flex-1 space-y-0.5 p-2 pt-3">
           {navItems.map(({ href, label, icon: Icon }) => {
             const isActive =
               href === '/dashboard'
@@ -137,7 +134,6 @@ export function Sidebar() {
           })}
         </nav>
 
-        {/* User section */}
         <div className="border-t border-border p-2">
           {!sidebarCollapsed && user && (
             <div className="mb-1.5 flex items-center gap-2.5 rounded-md px-2.5 py-2">
@@ -153,7 +149,6 @@ export function Sidebar() {
           )}
 
           <div className={cn('flex', sidebarCollapsed ? 'flex-col gap-0.5' : 'items-center gap-1')}>
-            {/* Logout */}
             <Tooltip delayDuration={0}>
               <TooltipTrigger asChild>
                 <button
@@ -168,12 +163,9 @@ export function Sidebar() {
                   {!sidebarCollapsed && 'Çıkış'}
                 </button>
               </TooltipTrigger>
-              {sidebarCollapsed && (
-                <TooltipContent side="right">Çıkış Yap</TooltipContent>
-              )}
+              {sidebarCollapsed && <TooltipContent side="right">Çıkış Yap</TooltipContent>}
             </Tooltip>
 
-            {/* Collapse toggle */}
             <Tooltip delayDuration={0}>
               <TooltipTrigger asChild>
                 <button
@@ -187,8 +179,7 @@ export function Sidebar() {
                 >
                   {sidebarCollapsed
                     ? <ChevronRight className="h-3.5 w-3.5" />
-                    : <ChevronLeft className="h-3.5 w-3.5" />
-                  }
+                    : <ChevronLeft className="h-3.5 w-3.5" />}
                 </button>
               </TooltipTrigger>
               <TooltipContent side="right">

@@ -72,12 +72,12 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
           <h1 className="text-2xl font-bold">Merhaba, {firstName}</h1>
           <p className="mt-1 text-sm text-muted-foreground">TaskFlow&apos;a hos geldiniz.</p>
         </div>
-        <Button asChild>
+        <Button asChild className="w-full sm:w-auto">
           <Link href="/teams/create">
             <Plus className="mr-2 h-4 w-4" />
             Yeni Ekip
@@ -137,7 +137,7 @@ export default function DashboardPage() {
             {!teamsLoading && (!teams || teams.length === 0) && (
               <div className="py-6 text-center">
                 <p className="text-sm text-muted-foreground">Henuz ekibiniz yok.</p>
-                <Button asChild size="sm" className="mt-3">
+                <Button asChild size="sm" className="mt-3 w-full sm:w-auto">
                   <Link href="/teams/create">Ekip Olustur</Link>
                 </Button>
               </div>
@@ -148,12 +148,12 @@ export default function DashboardPage() {
                   <Link
                     key={team.id}
                     href={`/teams/${team.id}/board`}
-                    className="flex items-center gap-3 rounded-lg p-2.5 transition-colors hover:bg-gray-50"
+                    className="flex min-w-0 items-center gap-3 rounded-lg p-2.5 transition-colors hover:bg-gray-50"
                   >
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+                    <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10">
                       <Users className="h-4 w-4 text-primary" />
                     </div>
-                    <span className="text-sm font-medium">{team.name}</span>
+                    <span className="min-w-0 truncate text-sm font-medium">{team.name}</span>
                   </Link>
                 ))}
               </div>
@@ -174,12 +174,12 @@ export default function DashboardPage() {
               <Link
                 key={href}
                 href={href}
-                className="flex items-center gap-3 rounded-lg p-2.5 transition-colors hover:bg-gray-50"
+                className="flex min-w-0 items-center gap-3 rounded-lg p-2.5 transition-colors hover:bg-gray-50"
               >
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100">
+                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-gray-100">
                   <Icon className="h-4 w-4 text-gray-600" />
                 </div>
-                <span className="text-sm font-medium">{label}</span>
+                <span className="min-w-0 truncate text-sm font-medium">{label}</span>
               </Link>
             ))}
           </CardContent>

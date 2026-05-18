@@ -28,24 +28,24 @@ const statusLabels: Record<Task['status'], string> = {
 function TeamTaskSection({ teamId, teamName, search }: { teamId: string; teamName: string; search: string }) {
   const { data: tasks, isLoading } = useTasks(teamId);
 
-  const filtered = (tasks ?? []).filter((t) =>
-    !search || t.title.toLowerCase().includes(search.toLowerCase())
+  const filtered = (tasks ?? []).filter((task) =>
+    !search || task.title.toLowerCase().includes(search.toLowerCase())
   );
 
   if (!isLoading && filtered.length === 0) return null;
 
   return (
     <div className="space-y-2">
-      <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+      <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
         {teamName}
       </h2>
-      <div className="rounded-xl border border-border bg-white overflow-hidden">
+      <div className="overflow-hidden rounded-xl border border-border bg-white">
         {isLoading ? (
           <div className="divide-y">
-            {[...Array(2)].map((_, i) => (
-              <div key={i} className="flex items-center gap-4 px-4 py-3">
+            {[...Array(2)].map((_, index) => (
+              <div key={index} className="flex items-center gap-4 px-4 py-3">
                 <Skeleton className="h-4 w-48" />
-                <Skeleton className="h-6 w-20 ml-auto" />
+                <Skeleton className="ml-auto h-6 w-20" />
               </div>
             ))}
           </div>
@@ -56,22 +56,24 @@ function TeamTaskSection({ teamId, teamName, search }: { teamId: string; teamNam
                 key={task.id}
                 href={`/teams/${teamId}/tasks/${task.id}`}
                 prefetch={false}
-                className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
+                className="flex flex-col items-start gap-2 px-4 py-3 transition-colors hover:bg-gray-50 sm:flex-row sm:items-center"
               >
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{task.title}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">{task.title}</p>
                   <p className="text-xs text-muted-foreground">{statusLabels[task.status]}</p>
                 </div>
-                <Badge variant="outline" className={priorityConfig[task.priority].className}>
-                  <Flag className="mr-1 h-2.5 w-2.5" />
-                  {priorityConfig[task.priority].label}
-                </Badge>
-                {task.due_date && (
-                  <Badge variant="outline" className="hidden sm:flex text-muted-foreground">
-                    <Calendar className="mr-1 h-2.5 w-2.5" />
-                    {formatDate(task.due_date)}
+                <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:flex-nowrap sm:justify-end">
+                  <Badge variant="outline" className={priorityConfig[task.priority].className}>
+                    <Flag className="mr-1 h-2.5 w-2.5" />
+                    {priorityConfig[task.priority].label}
                   </Badge>
-                )}
+                  {task.due_date && (
+                    <Badge variant="outline" className="text-muted-foreground">
+                      <Calendar className="mr-1 h-2.5 w-2.5" />
+                      {formatDate(task.due_date)}
+                    </Badge>
+                  )}
+                </div>
               </Link>
             ))}
           </div>
@@ -87,27 +89,27 @@ export default function TasksPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-2">
         <div>
           <h1 className="text-2xl font-bold">Görevlerim</h1>
           <p className="mt-1 text-sm text-muted-foreground">Tüm ekiplerdeki görevler</p>
         </div>
       </div>
 
-      <div className="relative max-w-sm">
+      <div className="relative w-full max-w-sm">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           placeholder="Görev ara..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(event) => setSearch(event.target.value)}
           className="pl-9"
         />
       </div>
 
       {teamsLoading && (
         <div className="space-y-4">
-          {[...Array(2)].map((_, i) => (
-            <div key={i} className="space-y-2">
+          {[...Array(2)].map((_, index) => (
+            <div key={index} className="space-y-2">
               <Skeleton className="h-4 w-24" />
               <Skeleton className="h-24 rounded-xl" />
             </div>
