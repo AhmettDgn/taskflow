@@ -2,22 +2,12 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useState } from 'react';
 import { Search, ChevronRight, LogOut, User } from 'lucide-react';
 import { toast } from 'sonner';
 import { useUIStore } from '@/store/useUIStore';
 import { useSignOut } from '@/hooks/useAuth';
 import { useTeam } from '@/hooks/useTeam';
 import type { UserSummary } from '@/lib/types';
-import { NotificationBell } from '@/components/notifications/NotificationBell';
-import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet';
 
 function useBreadcrumb() {
   const pathname = usePathname();
@@ -62,7 +52,6 @@ interface TopbarProps {
 }
 
 export function Topbar({ user }: TopbarProps) {
-  const [accountOpen, setAccountOpen] = useState(false);
   const { setCommandOpen } = useUIStore();
   const signOut = useSignOut();
   const router = useRouter();
@@ -80,94 +69,77 @@ export function Topbar({ user }: TopbarProps) {
   const handleSignOut = async () => {
     await signOut();
     toast.success('Cikis yapildi');
-    setAccountOpen(false);
     router.push('/login');
     router.refresh();
   };
 
   return (
-    <>
-      <header className="flex h-14 flex-shrink-0 items-center gap-2 border-b border-border bg-white/80 px-3 backdrop-blur-sm sm:px-4">
-        <div className="min-w-0 flex-1">
-          <div className="truncate text-sm font-semibold text-foreground md:hidden">
-            {mobileLabel}
-          </div>
-
-          <nav className="hidden min-w-0 items-center gap-1 text-sm md:flex">
-            {breadcrumb.map((part, index) => (
-              <span key={index} className="flex min-w-0 items-center gap-1">
-                {index > 0 && (
-                  <ChevronRight className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground/50" />
-                )}
-                <span
-                  className={
-                    index === breadcrumb.length - 1
-                      ? 'truncate font-semibold text-foreground'
-                      : 'truncate text-muted-foreground'
-                  }
-                >
-                  {part}
-                </span>
-              </span>
-            ))}
-          </nav>
+    <header className="flex h-14 flex-shrink-0 items-center gap-2 border-b border-border bg-white/80 px-3 backdrop-blur-sm sm:px-4">
+      <div className="min-w-0 flex-1">
+        <div className="truncate text-sm font-semibold text-foreground md:hidden">
+          {mobileLabel}
         </div>
 
-        <button
-          onClick={() => setCommandOpen(true)}
-          className="hidden items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground md:flex"
-          data-testid="command-palette-trigger"
-        >
-          <Search className="h-3.5 w-3.5" />
-          <span>Ara...</span>
-          <kbd className="ml-1 rounded border border-border bg-background px-1.5 py-0.5 text-[10px] font-medium">
-            Ctrl K
-          </kbd>
-        </button>
-
-        <NotificationBell />
-
-        <button
-          type="button"
-          onClick={() => setAccountOpen(true)}
-          className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary transition-colors hover:bg-primary/15"
-          aria-label="Hesap menusu"
-          data-testid="account-menu-trigger"
-        >
-          {initials || 'U'}
-        </button>
-      </header>
-
-      <Sheet open={accountOpen} onOpenChange={setAccountOpen}>
-        <SheetContent side="bottom" className="rounded-t-3xl pb-8 sm:max-w-none">
-          <SheetHeader className="pr-8 text-left">
-            <SheetTitle>Hesap</SheetTitle>
-            <SheetDescription>{displayName}</SheetDescription>
-          </SheetHeader>
-
-          <div className="mt-6 space-y-3">
-            <SheetClose asChild>
-              <Link
-                href="/profile"
-                className="flex items-center gap-3 rounded-xl border border-border px-4 py-3 text-sm font-medium transition-colors hover:bg-accent"
+        <nav className="hidden min-w-0 items-center gap-1 text-sm md:flex">
+          {breadcrumb.map((part, index) => (
+            <span key={index} className="flex min-w-0 items-center gap-1">
+              {index > 0 && (
+                <ChevronRight className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground/50" />
+              )}
+              <span
+                className={
+                  index === breadcrumb.length - 1
+                    ? 'truncate font-semibold text-foreground'
+                    : 'truncate text-muted-foreground'
+                }
               >
-                <User className="h-4 w-4 text-muted-foreground" />
-                Profil
-              </Link>
-            </SheetClose>
+                {part}
+              </span>
+            </span>
+          ))}
+        </nav>
+      </div>
 
-            <button
-              type="button"
-              onClick={handleSignOut}
-              className="flex w-full items-center gap-3 rounded-xl border border-destructive/20 px-4 py-3 text-sm font-medium text-destructive transition-colors hover:bg-destructive/5"
-              data-testid="topbar-logout"
-            >
-              <LogOut className="h-4 w-4" />
-              Cikis Yap
-            </button>
-          </div>
-        </SheetContent>
-      </Sheet>
-    </>
+      <button
+        onClick={() => setCommandOpen(true)}
+        className="hidden items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground md:flex"
+        data-testid="command-palette-trigger"
+      >
+        <Search className="h-3.5 w-3.5" />
+        <span>Ara...</span>
+        <kbd className="ml-1 rounded border border-border bg-background px-1.5 py-0.5 text-[10px] font-medium">
+          Ctrl K
+        </kbd>
+      </button>
+
+      <Link
+        href="/profile"
+        className="hidden items-center gap-2 rounded-lg border border-border px-3 py-1.5 text-sm font-medium transition-colors hover:bg-accent md:flex"
+      >
+        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-[11px] font-bold text-primary">
+          {initials || 'U'}
+        </span>
+        <span className="max-w-28 truncate">{displayName}</span>
+      </Link>
+
+      <button
+        type="button"
+        onClick={handleSignOut}
+        className="flex items-center gap-2 rounded-lg border border-destructive/20 px-3 py-1.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/5"
+        data-testid="topbar-logout"
+      >
+        <LogOut className="h-4 w-4" />
+        <span className="hidden sm:inline">Cikis</span>
+      </button>
+
+      <Link
+        href="/profile"
+        className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary transition-colors hover:bg-primary/15 md:hidden"
+        aria-label="Profil"
+        data-testid="account-menu-trigger"
+      >
+        <User className="h-4 w-4" />
+      </Link>
+    </header>
   );
 }
