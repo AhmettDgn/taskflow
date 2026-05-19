@@ -32,6 +32,19 @@ log() {
   printf '[deploy] %s\n' "$*"
 }
 
+ensure_global_tool() {
+  local tool_name="$1"
+  local package_name="$2"
+
+  if command -v "${tool_name}" >/dev/null 2>&1; then
+    return
+  fi
+
+  log "Installing missing global tool: ${package_name}"
+  npm install -g "${package_name}"
+  hash -r
+}
+
 run_pnpm() {
   if command -v corepack >/dev/null 2>&1; then
     corepack pnpm "$@"
@@ -43,8 +56,8 @@ run_pnpm() {
     return
   fi
 
-  printf 'Neither corepack nor pnpm is available on the server.\n' >&2
-  exit 1
+  ensure_global_tool pnpm pnpm@10.11.1
+  pnpm "$@"
 }
 
 require_command() {
@@ -163,7 +176,7 @@ cleanup() {
 trap on_error ERR
 trap cleanup EXIT
 
-require_command bash git curl pm2
+require_command bash git curl
 
 if [[ ! -s "${HOME}/.nvm/nvm.sh" ]]; then
   printf 'nvm not found at %s/.nvm/nvm.sh\n' "${HOME}" >&2
@@ -176,6 +189,7 @@ nvm use 24 >/dev/null
 if command -v corepack >/dev/null 2>&1; then
   corepack enable >/dev/null 2>&1 || true
 fi
+ensure_global_tool pm2 pm2
 
 if [[ ! -d "${ROOT_DIR}" ]]; then
   printf 'Deploy path does not exist: %s\n' "${ROOT_DIR}" >&2

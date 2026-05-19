@@ -3,6 +3,19 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
+ensure_global_tool() {
+  local tool_name="$1"
+  local package_name="$2"
+
+  if command -v "${tool_name}" >/dev/null 2>&1; then
+    return
+  fi
+
+  echo "Installing missing global tool: ${package_name}"
+  npm install -g "${package_name}"
+  hash -r
+}
+
 run_pnpm() {
   if command -v corepack >/dev/null 2>&1; then
     corepack pnpm "$@"
@@ -14,8 +27,8 @@ run_pnpm() {
     return
   fi
 
-  echo "Neither corepack nor pnpm is available on the server." >&2
-  exit 1
+  ensure_global_tool pnpm pnpm@10.11.1
+  pnpm "$@"
 }
 
 if [[ ! -s "${HOME}/.nvm/nvm.sh" ]]; then
@@ -29,6 +42,7 @@ nvm use 24 >/dev/null
 if command -v corepack >/dev/null 2>&1; then
   corepack enable >/dev/null 2>&1 || true
 fi
+ensure_global_tool pm2 pm2
 
 if [[ -f "${ROOT_DIR}/frontend.env" ]]; then
   set -a

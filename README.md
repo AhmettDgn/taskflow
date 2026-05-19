@@ -140,8 +140,9 @@ Server prerequisites for automated deploy:
 - `bash`
 - `nvm`
 - Node `24`
-- `corepack` / `pnpm`
-- `pm2`
+- `npm`
+- `corepack` or `pnpm`
+- `pm2` is auto-installed by the deploy scripts when missing
 - `curl`
 - root-level `frontend.env` and `backend.env`
 
