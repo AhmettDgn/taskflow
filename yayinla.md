@@ -18,6 +18,8 @@ Bu dosya, TaskFlow projesinin diger yayinlarla cakismadan `https://taskflow.arsl
 - Kullanilmayacak portlar: `3000`, `3001`, `3010`, `3005`, `5001`, `5002`, `8000`, `18110`
 - TaskFlow servisleri public bind yapmayacak
 - Nginx `taskflow.arslanyusuf.com` icin `80/443` dinleyecek
+- `taskflow.conf` aktiflesmesi icin `/etc/nginx/sites-enabled/taskflow.conf` symlink'i mevcut olmali
+- `taskflow.conf` icinde `443 ssl` server blogu korunmali; bootstrap `80` dosyasi ile ustune yazilmamali
 - `3006` gecis suresince korunabilir, fakat ana erisim domain uzerinden olacak
 - Mevcut `default`, `financialproject`, `monad`, `isiklar`, `arya` tanimlarina dokunulmayacak
 - PM2'de mevcut isimler yeniden kullanilmayacak; sadece `taskflow-frontend` ve `taskflow-backend` olacak
@@ -34,6 +36,8 @@ Bu dosya, TaskFlow projesinin diger yayinlarla cakismadan `https://taskflow.arsl
 - [ ] Frontend ve backend PM2 ile local portlarda kaldirildi
 - [x] Local saglik kontrolleri dogrulandi
 - [x] Nginx config eklendi
+- [ ] `/etc/nginx/sites-enabled/taskflow.conf` symlink'i dogrulandi
+- [ ] `taskflow.conf` icindeki `443 ssl` block aktif dosyada dogrulandi
 - [ ] `nginx -t` basarili gecti
 - [ ] `taskflow.arslanyusuf.com` uzerinden HTTP/HTTPS dogrulamasi yapildi
 - [ ] Gerekirse `3006` gecis erisimi dogrulandi
