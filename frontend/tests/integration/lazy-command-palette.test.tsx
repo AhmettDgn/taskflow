@@ -4,8 +4,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { LazyCommandPalette } from '@/components/ui/LazyCommandPalette';
 import { useUIStore } from '@/store/useUIStore';
 
-vi.mock('next/dynamic', () => ({
-  default: () => () => <div data-testid="lazy-command-palette-content">palette</div>,
+vi.mock('@/components/ui/CommandPalette', () => ({
+  CommandPalette: () => <div data-testid="lazy-command-palette-content">palette</div>,
 }));
 
 const initialState = useUIStore.getState();

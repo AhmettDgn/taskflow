@@ -1,13 +1,8 @@
 'use client';
 
-import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
 import { useUIStore } from '@/store/useUIStore';
-
-const CommandPalette = dynamic(
-  () => import('@/components/ui/CommandPalette'),
-  { ssr: false }
-);
+import { CommandPalette } from '@/components/ui/CommandPalette';
 
 export function LazyCommandPalette() {
   const [isEnabled, setIsEnabled] = useState(false);
