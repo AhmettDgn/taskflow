@@ -1,10 +1,12 @@
 # TaskFlow Yayin Plani
 
-Bu dosya, TaskFlow projesinin diger yayinlarla cakismadan IP:`3006` uzerinden yayina alinmasi icin tek kaynak checklist olarak tutulur.
+Bu dosya, TaskFlow projesinin diger yayinlarla cakismadan `https://taskflow.arslanyusuf.com` altinda yayina alinmasi icin tek kaynak checklist olarak tutulur.
 
 ## Sabit Topoloji
 
-- Dis public port: `3006`
+- Primary public host: `taskflow.arslanyusuf.com`
+- Primary public ports: `80` / `443`
+- Transition public port: `3006`
 - Local frontend bind: `127.0.0.1:3021`
 - Local backend bind: `127.0.0.1:5021`
 - PM2 process names: `taskflow-frontend`, `taskflow-backend`
@@ -15,7 +17,8 @@ Bu dosya, TaskFlow projesinin diger yayinlarla cakismadan IP:`3006` uzerinden ya
 
 - Kullanilmayacak portlar: `3000`, `3001`, `3010`, `3005`, `5001`, `5002`, `8000`, `18110`
 - TaskFlow servisleri public bind yapmayacak
-- Sadece Nginx `3006` dinleyecek
+- Nginx `taskflow.arslanyusuf.com` icin `80/443` dinleyecek
+- `3006` gecis suresince korunabilir, fakat ana erisim domain uzerinden olacak
 - Mevcut `default`, `financialproject`, `monad`, `isiklar`, `arya` tanimlarina dokunulmayacak
 - PM2'de mevcut isimler yeniden kullanilmayacak; sadece `taskflow-frontend` ve `taskflow-backend` olacak
 
@@ -32,7 +35,8 @@ Bu dosya, TaskFlow projesinin diger yayinlarla cakismadan IP:`3006` uzerinden ya
 - [x] Local saglik kontrolleri dogrulandi
 - [x] Nginx config eklendi
 - [ ] `nginx -t` basarili gecti
-- [ ] `3006` uzerinden uctan uca dogrulama yapildi
+- [ ] `taskflow.arslanyusuf.com` uzerinden HTTP/HTTPS dogrulamasi yapildi
+- [ ] Gerekirse `3006` gecis erisimi dogrulandi
 - [ ] `pm2 save` calistirildi
 - [x] Tamamlanan maddeler bu dosyada isaretlendi
 
@@ -86,6 +90,9 @@ pm2 describe taskflow-backend
 curl http://127.0.0.1:3021
 curl http://127.0.0.1:5021/health
 nginx -t
+curl -I http://taskflow.arslanyusuf.com
+curl -I https://taskflow.arslanyusuf.com
+curl https://taskflow.arslanyusuf.com/api/health
 curl http://127.0.0.1:3006
 curl http://127.0.0.1:3006/api/health
 ```

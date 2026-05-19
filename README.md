@@ -101,11 +101,12 @@ pnpm dev --turbo
 
 ## Production Topology
 
-- Public traffic comes through Nginx on port `3006`.
+- Public traffic comes through Nginx at `https://taskflow.arslanyusuf.com`.
 - Frontend stays bound to `127.0.0.1:3021`.
 - Backend stays bound to `127.0.0.1:5021`.
 - Frontend talks to the API through relative `/api` paths.
 - PM2 process names stay fixed as `taskflow-frontend` and `taskflow-backend`.
+- Public `3006` can stay enabled temporarily as a transition route, but the primary production URL is the subdomain.
 
 ## Automated Deploy
 
@@ -134,6 +135,7 @@ Workflow behavior:
 - The deploy script installs the required Playwright Chromium binary on the server before running `pnpm test:predeploy`.
 - If PM2 reload succeeds but the post-deploy health checks fail, the script rolls back to the previous Git commit automatically.
 - Server scripts prefer `corepack pnpm`, but fall back to plain `pnpm` automatically when `corepack` is unavailable.
+- The nginx template is intentionally HTTP-first for the subdomain bootstrap; Certbot injects the final `443 ssl` block after the first certificate issuance.
 
 Server prerequisites for automated deploy:
 
