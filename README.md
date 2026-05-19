@@ -132,6 +132,7 @@ Workflow behavior:
 - The server only reloads PM2 after `pnpm test:predeploy` and `pnpm build` succeed.
 - The server-side release gate runs on isolated ports `3121` and `5121`, so it validates the freshly pulled code without disturbing the live PM2 processes on `3021` and `5021`.
 - If PM2 reload succeeds but the post-deploy health checks fail, the script rolls back to the previous Git commit automatically.
+- Server scripts prefer `corepack pnpm`, but fall back to plain `pnpm` automatically when `corepack` is unavailable.
 
 Server prerequisites for automated deploy:
 

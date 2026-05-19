@@ -32,6 +32,21 @@ log() {
   printf '[deploy] %s\n' "$*"
 }
 
+run_pnpm() {
+  if command -v corepack >/dev/null 2>&1; then
+    corepack pnpm "$@"
+    return
+  fi
+
+  if command -v pnpm >/dev/null 2>&1; then
+    pnpm "$@"
+    return
+  fi
+
+  printf 'Neither corepack nor pnpm is available on the server.\n' >&2
+  exit 1
+}
+
 require_command() {
   local command_name
   for command_name in "$@"; do
@@ -120,8 +135,8 @@ rollback() {
 
   log "Deploy failed after PM2 reload. Rolling back to ${PREV_COMMIT}"
   git reset --hard "${PREV_COMMIT}"
-  corepack pnpm install --frozen-lockfile
-  corepack pnpm build
+  run_pnpm install --frozen-lockfile
+  run_pnpm build
   pm2 startOrReload ecosystem.config.cjs --update-env
   pm2 save
   health_check "backend rollback" "http://127.0.0.1:5021/health"
@@ -148,7 +163,7 @@ cleanup() {
 trap on_error ERR
 trap cleanup EXIT
 
-require_command bash git curl corepack pm2
+require_command bash git curl pm2
 
 if [[ ! -s "${HOME}/.nvm/nvm.sh" ]]; then
   printf 'nvm not found at %s/.nvm/nvm.sh\n' "${HOME}" >&2
@@ -158,7 +173,9 @@ fi
 . "${HOME}/.nvm/nvm.sh"
 nvm install 24 >/dev/null
 nvm use 24 >/dev/null
-corepack enable >/dev/null 2>&1 || true
+if command -v corepack >/dev/null 2>&1; then
+  corepack enable >/dev/null 2>&1 || true
+fi
 
 if [[ ! -d "${ROOT_DIR}" ]]; then
   printf 'Deploy path does not exist: %s\n' "${ROOT_DIR}" >&2
@@ -184,16 +201,16 @@ git checkout "${DEPLOY_BRANCH}"
 git pull --ff-only origin "${DEPLOY_BRANCH}"
 
 log "Installing dependencies"
-corepack pnpm install --frozen-lockfile
+run_pnpm install --frozen-lockfile
 
 log "Running release gate"
 E2E_BASE_URL="http://127.0.0.1:3121" \
 E2E_BACKEND_BASE_URL="http://127.0.0.1:5121" \
 NEXT_PUBLIC_APP_URL="http://127.0.0.1:3121" \
-corepack pnpm test:predeploy
+run_pnpm test:predeploy
 
 log "Building workspace"
-corepack pnpm build
+run_pnpm build
 
 log "Reloading PM2 processes"
 pm2 startOrReload ecosystem.config.cjs --update-env
