@@ -100,7 +100,7 @@ export default function MembersPage({ params }: { params: { teamId: string } }) 
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-lg font-semibold">Üyeler</h2>
+        <h2 className="text-lg font-semibold" data-testid="team-members-heading">Üyeler</h2>
         <p className="text-sm text-muted-foreground">{members?.length ?? 0} üye</p>
       </div>
 

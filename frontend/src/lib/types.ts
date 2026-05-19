@@ -12,6 +12,11 @@ export interface Profile {
   avatar_url: string | null;
 }
 
+export interface UserSummary {
+  email: string | null;
+  fullName: string | null;
+}
+
 export interface Team {
   id: string;
   name: string;

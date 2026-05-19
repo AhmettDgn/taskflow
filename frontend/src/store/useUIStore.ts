@@ -13,6 +13,7 @@ interface UIState {
   setSidebarCollapsed: (collapsed: boolean) => void;
   toggleSidebarCollapsed: () => void;
   setActiveModal: (modal: string | null) => void;
+  setCommandOpen: (open: boolean) => void;
   toggleCommand: () => void;
   setTheme: (theme: Theme) => void;
 }
@@ -28,6 +29,7 @@ export const useUIStore = create<UIState>((set) => ({
   setSidebarCollapsed: (collapsed) => set({ sidebarCollapsed: collapsed }),
   toggleSidebarCollapsed: () => set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
   setActiveModal: (modal) => set({ activeModal: modal }),
+  setCommandOpen: (open) => set({ isCommandOpen: open }),
   toggleCommand: () => set((state) => ({ isCommandOpen: !state.isCommandOpen })),
   setTheme: (theme) => {
     set({ theme });

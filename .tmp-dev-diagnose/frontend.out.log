@@ -1,0 +1,19 @@
+
+> frontend@0.1.0 dev C:\Users\HP\Desktop\TaskFlow\frontend
+> node ./scripts/dev.mjs "--" "--hostname" "127.0.0.1" "--port" "3121"
+
+  ▲ Next.js 14.2.35
+  - Local:        http://127.0.0.1:3121
+  - Network:      http://127.0.0.1:3121
+  - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 2.3s
+ ✓ Compiled /src/middleware in 417ms (126 modules)
+ ○ Compiling /login ...
+ ✓ Compiled /login in 1881ms (596 modules)
+ ✓ Compiled in 162ms (304 modules)
+ GET /login 200 in 2066ms
+ ✓ Compiled in 237ms (304 modules)
+ ✓ Compiled in 782ms (304 modules)
+[?25h

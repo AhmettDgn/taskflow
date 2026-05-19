@@ -1,0 +1,5 @@
+
+> taskflow-workspace@ dev:localhost C:\Users\HP\Desktop\TaskFlow
+> node ./scripts/dev-localhost.mjs
+
+ ELIFECYCLE  Command failed with exit code 1.

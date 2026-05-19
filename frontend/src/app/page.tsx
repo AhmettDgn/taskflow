@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import { getRootRedirectPath } from '@/lib/auth-routing';
 import { createClient } from '@/lib/supabase/server';
 
 export default async function RootPage() {
@@ -7,6 +8,5 @@ export default async function RootPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (user) redirect('/dashboard');
-  else redirect('/login');
+  redirect(getRootRedirectPath(Boolean(user)));
 }

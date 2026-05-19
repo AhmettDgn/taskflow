@@ -8,8 +8,9 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useUIStore } from '@/store/useUIStore';
-import { useAuth } from '@/hooks/useAuth';
+import { useSignOut } from '@/hooks/useAuth';
 import { APP_NAME } from '@/lib/constants';
+import type { UserSummary } from '@/lib/types';
 import { cn, getInitials } from '@/lib/utils';
 import {
   Tooltip,
@@ -21,7 +22,7 @@ import {
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/teams', label: 'Ekipler', icon: Users },
-  { href: '/tasks', label: 'Görevlerim', icon: CheckSquare },
+  { href: '/tasks', label: 'Gorevlerim', icon: CheckSquare },
   { href: '/notifications', label: 'Bildirimler', icon: Bell },
 ];
 
@@ -72,15 +73,19 @@ function NavItem({
   return link;
 }
 
-export function Sidebar() {
+interface SidebarProps {
+  user: UserSummary | null;
+}
+
+export function Sidebar({ user }: SidebarProps) {
   const { sidebarOpen, sidebarCollapsed, toggleSidebarCollapsed } = useUIStore();
-  const { user, signOut } = useAuth();
+  const signOut = useSignOut();
   const pathname = usePathname();
   const router = useRouter();
 
   const handleSignOut = async () => {
     await signOut();
-    toast.success('Çıkış yapıldı');
+    toast.success('Cikis yapildi');
     router.push('/login');
     router.refresh();
   };
@@ -138,11 +143,11 @@ export function Sidebar() {
           {!sidebarCollapsed && user && (
             <div className="mb-1.5 flex items-center gap-2.5 rounded-md px-2.5 py-2">
               <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-[11px] font-bold text-primary">
-                {getInitials(user.user_metadata?.full_name ?? user.email ?? null)}
+                {getInitials(user.fullName ?? user.email ?? null)}
               </div>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-xs font-medium">
-                  {user.user_metadata?.full_name ?? user.email ?? ''}
+                  {user.fullName ?? user.email ?? ''}
                 </p>
               </div>
             </div>
@@ -158,12 +163,13 @@ export function Sidebar() {
                     'transition-colors hover:bg-destructive/10 hover:text-destructive',
                     sidebarCollapsed ? 'w-full justify-center' : 'flex-1'
                   )}
+                  data-testid="sidebar-logout"
                 >
                   <LogOut className="h-4 w-4 flex-shrink-0" />
-                  {!sidebarCollapsed && 'Çıkış'}
+                  {!sidebarCollapsed && 'Cikis'}
                 </button>
               </TooltipTrigger>
-              {sidebarCollapsed && <TooltipContent side="right">Çıkış Yap</TooltipContent>}
+              {sidebarCollapsed && <TooltipContent side="right">Cikis Yap</TooltipContent>}
             </Tooltip>
 
             <Tooltip delayDuration={0}>
@@ -175,7 +181,7 @@ export function Sidebar() {
                     'transition-colors hover:bg-accent hover:text-accent-foreground',
                     sidebarCollapsed ? 'w-full' : 'ml-auto'
                   )}
-                  aria-label={sidebarCollapsed ? 'Genişlet' : 'Daralt'}
+                  aria-label={sidebarCollapsed ? 'Genislet' : 'Daralt'}
                 >
                   {sidebarCollapsed
                     ? <ChevronRight className="h-3.5 w-3.5" />
@@ -183,7 +189,7 @@ export function Sidebar() {
                 </button>
               </TooltipTrigger>
               <TooltipContent side="right">
-                {sidebarCollapsed ? 'Genişlet' : 'Daralt'}
+                {sidebarCollapsed ? 'Genislet' : 'Daralt'}
               </TooltipContent>
             </Tooltip>
           </div>

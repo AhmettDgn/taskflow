@@ -37,7 +37,7 @@ export default function NotificationsPage() {
     <div className="mx-auto max-w-2xl space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Bildirimler</h1>
+          <h1 className="text-2xl font-bold" data-testid="notifications-heading">Bildirimler</h1>
           {unreadCount > 0 && (
             <p className="mt-0.5 text-sm text-muted-foreground">
               {unreadCount} okunmamış bildirim

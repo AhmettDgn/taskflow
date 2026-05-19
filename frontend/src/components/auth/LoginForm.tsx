@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { redirectToPath } from '@/lib/browser-navigation';
 
 const inputClassName =
   'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50';
@@ -8,7 +9,7 @@ const labelClassName = 'text-sm font-medium leading-none';
 const buttonClassName =
   'inline-flex h-10 w-full items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50';
 
-function isValidEmail(value: string) {
+export function isValidEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
@@ -51,11 +52,11 @@ export function LoginForm() {
       return;
     }
 
-    window.location.assign('/dashboard');
+    redirectToPath('/dashboard');
   };
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
+    <form onSubmit={onSubmit} className="space-y-4" data-testid="login-form" noValidate>
       <div className="space-y-2">
         <label htmlFor="email" className={labelClassName}>E-posta</label>
         <input
@@ -65,6 +66,7 @@ export function LoginForm() {
           autoComplete="email"
           disabled={isLoading}
           className={inputClassName}
+          data-testid="login-email"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
         />
@@ -83,18 +85,27 @@ export function LoginForm() {
           autoComplete="current-password"
           disabled={isLoading}
           className={inputClassName}
+          data-testid="login-password"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
         />
       </div>
 
       {errorMessage && (
-        <p className="rounded-md border border-destructive/20 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+        <p
+          className="rounded-md border border-destructive/20 bg-destructive/5 px-3 py-2 text-sm text-destructive"
+          data-testid="login-error"
+        >
           {errorMessage}
         </p>
       )}
 
-      <button type="submit" className={buttonClassName} disabled={isLoading}>
+      <button
+        type="submit"
+        className={buttonClassName}
+        disabled={isLoading}
+        data-testid="login-submit"
+      >
         {isLoading ? 'Giris yapiliyor...' : 'Giris Yap'}
       </button>
 

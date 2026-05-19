@@ -358,7 +358,9 @@ export default function ListPage({ params }: { params: { teamId: string } }) {
     <>
       <div className="space-y-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-muted-foreground">{filtered.length} görev</p>
+          <p className="text-sm text-muted-foreground" data-testid="team-list-heading">
+            {filtered.length} görev
+          </p>
           <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
             {hydrated && (
               <ColumnsMenu

@@ -3,27 +3,23 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { LayoutDashboard, Users, CheckSquare, Bell } from 'lucide-react';
-import { useNotifications } from '@/hooks/useNotifications';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/teams', label: 'Ekipler', icon: Users },
-  { href: '/tasks', label: 'Görevler', icon: CheckSquare },
+  { href: '/tasks', label: 'Gorevler', icon: CheckSquare },
   { href: '/notifications', label: 'Bildirimler', icon: Bell },
 ];
 
 export function MobileNav() {
   const pathname = usePathname();
-  const { data: notifications = [] } = useNotifications();
-  const unreadCount = notifications.filter((n) => !n.is_read).length;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-white md:hidden">
       <div className="flex items-center justify-around py-1">
         {navItems.map(({ href, label, icon: Icon }) => {
           const isActive = pathname === href || pathname.startsWith(href + '/');
-          const isNotif = href === '/notifications';
 
           return (
             <Link
@@ -36,11 +32,6 @@ export function MobileNav() {
             >
               <span className="relative">
                 <Icon className="h-5 w-5" />
-                {isNotif && unreadCount > 0 && (
-                  <span className="absolute -right-1 -top-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-destructive text-[9px] font-bold text-destructive-foreground">
-                    {unreadCount > 9 ? '9+' : unreadCount}
-                  </span>
-                )}
               </span>
               <span>{label}</span>
             </Link>

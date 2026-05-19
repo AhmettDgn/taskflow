@@ -1,0 +1,63 @@
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:3221
+  - Network:      http://[::1]:3221
+  - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 1778ms
+ ○ Compiling /src/middleware ...
+ ✓ Compiled /src/middleware in 658ms (126 modules)
+ ○ Compiling /login ...
+ ✓ Compiled /login in 3.1s (596 modules)
+ GET /login 200 in 3333ms
+ ✓ Compiled in 265ms (304 modules)
+ GET /login 200 in 53ms
+ ✓ Compiled / in 404ms (586 modules)
+ GET / 200 in 968ms
+ ✓ Compiled /favicon.ico in 171ms (314 modules)
+ GET /favicon.ico 200 in 236ms
+ ○ Compiling /dashboard ...
+ ✓ Compiled /dashboard in 1466ms (1081 modules)
+ GET /dashboard 200 in 1953ms
+ ✓ Compiled /login in 154ms (576 modules)
+ GET /dashboard 200 in 1172ms
+ GET /dashboard 200 in 1034ms
+ ✓ Compiled /_not-found in 256ms (1075 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 326ms
+ ✓ Compiled /tasks in 428ms (1078 modules)
+ ✓ Compiled /teams in 470ms (1100 modules)
+ ○ Compiling /teams/[teamId]/board ...
+ ✓ Compiled /teams/[teamId]/board in 1122ms (1295 modules)
+ ○ Compiling /teams/[teamId]/list ...
+ ✓ Compiled /teams/[teamId]/list in 565ms (1316 modules)
+ ✓ Compiled in 1594ms (1319 modules)
+ ✓ Compiled /_not-found in 236ms (675 modules)
+ GET /teams/336ffce9-f2b6-4635-91be-b7eac82e4389/list 200 in 1315ms
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 1171ms (1532 modules)
+ GET /_next/static/chunks/webpack.js?v=1779197152427 500 in 4510ms
+ GET /_next/static/chunks/app/(dashboard)/teams/%5BteamId%5D/list/page.js 500 in 4279ms
+ GET /_next/static/chunks/main-app.js?v=1779197152427 500 in 4282ms
+ GET /_next/static/chunks/app-pages-internals.js 500 in 4281ms
+ GET /_next/static/css/app/layout.css?v=1779197152427 500 in 4515ms
+ GET /_next/static/chunks/app/error.js 500 in 3289ms
+ GET /_next/static/chunks/app/(dashboard)/layout.js 500 in 41ms
+ GET /_next/static/chunks/app/(dashboard)/error.js 500 in 42ms
+ ○ Compiling /favicon.ico ...
+ ✓ Compiled /favicon.ico in 715ms (747 modules)
+ GET /favicon.ico 200 in 799ms
+ GET /_next/static/css/app/layout.css?v=1779197173542 500 in 29ms
+ GET /_next/static/chunks/main-app.js?v=1779197173542 500 in 21ms
+ GET /_next/static/chunks/app-pages-internals.js 500 in 20ms
+ GET /_next/static/chunks/app/error.js 500 in 20ms
+ GET /_next/static/chunks/app/(dashboard)/teams/%5BteamId%5D/list/page.js 500 in 20ms
+ GET /teams/336ffce9-f2b6-4635-91be-b7eac82e4389/list 200 in 523ms
+ GET /_next/static/chunks/app/(dashboard)/teams/%5BteamId%5D/layout.js 500 in 16ms
+ GET /_next/static/chunks/app/(dashboard)/layout.js 500 in 13ms
+ GET /_next/static/chunks/app/(dashboard)/error.js 500 in 13ms
+ GET /favicon.ico 200 in 17ms
+ GET /_next/static/css/app/layout.css?v=1779197173542 500 in 10ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 500 in 9ms
+ GET /teams/336ffce9-f2b6-4635-91be-b7eac82e4389/list 500 in 237ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 500 in 17ms
+ GET /favicon.ico 200 in 10ms

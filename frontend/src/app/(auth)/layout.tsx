@@ -1,6 +1,3 @@
-// Auth pages are always dynamic — they must not be statically cached
-export const dynamic = 'force-dynamic';
-
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <main className="flex min-h-screen items-center justify-center bg-gray-50 p-4">

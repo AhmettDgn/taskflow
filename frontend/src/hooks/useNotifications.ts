@@ -7,13 +7,19 @@ import { getAuthContext } from '@/lib/supabase/auth-helpers';
 import { QUERY_KEYS, STALE_TIME } from '@/lib/constants';
 import type { Notification } from '@/lib/types';
 
+interface NotificationsOptions {
+  enabled?: boolean;
+}
+
 function mergeNotification(old: Notification[] | undefined, incoming: Notification) {
   if (!old) return [incoming];
   if (old.some((notification) => notification.id === incoming.id)) return old;
   return [incoming, ...old];
 }
 
-export function useNotifications() {
+export function useNotifications(options: NotificationsOptions = {}) {
+  const { enabled = true } = options;
+
   return useQuery<Notification[]>({
     queryKey: [QUERY_KEYS.notifications],
     queryFn: async () => {
@@ -29,6 +35,7 @@ export function useNotifications() {
       return (data ?? []) as Notification[];
     },
     staleTime: STALE_TIME,
+    enabled,
   });
 }
 
@@ -76,11 +83,14 @@ export function useMarkAllAsRead() {
   });
 }
 
-export function useRealtimeNotifications() {
+export function useRealtimeNotifications(options: NotificationsOptions = {}) {
+  const { enabled = true } = options;
   const queryClient = useQueryClient();
   const subscriptionId = useId();
 
   useEffect(() => {
+    if (!enabled) return;
+
     const supabase = createClient();
     let isActive = true;
     let channelCleanup: (() => void) | undefined;
@@ -116,5 +126,5 @@ export function useRealtimeNotifications() {
       isActive = false;
       channelCleanup?.();
     };
-  }, [queryClient, subscriptionId]);
+  }, [enabled, queryClient, subscriptionId]);
 }

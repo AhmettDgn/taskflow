@@ -96,6 +96,7 @@ export default function TaskDetailPage({
               className="cursor-pointer text-xl font-bold hover:text-primary"
               onClick={() => { setTitleValue(task.title); setEditingTitle(true); }}
               title="Düzenlemek için tıklayın"
+              data-testid="task-detail-title"
             >
               {task.title}
             </h1>

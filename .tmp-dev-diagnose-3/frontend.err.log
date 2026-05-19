@@ -1,0 +1,386 @@
+[Error: ENOENT: no such file or directory, stat 'C:\Users\HP\Desktop\TaskFlow\frontend\.next\cache\webpack\client-development\1.pack.gz'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'stat',
+  path: 'C:\\Users\\HP\\Desktop\\TaskFlow\\frontend\\.next\\cache\\webpack\\client-development\\1.pack.gz'
+}
+ ⨯ unhandledRejection: [Error: ENOENT: no such file or directory, stat 'C:\Users\HP\Desktop\TaskFlow\frontend\.next\cache\webpack\client-development\1.pack.gz'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'stat',
+  path: 'C:\\Users\\HP\\Desktop\\TaskFlow\\frontend\\.next\\cache\\webpack\\client-development\\1.pack.gz'
+}
+ ⨯ unhandledRejection: [Error: ENOENT: no such file or directory, stat 'C:\Users\HP\Desktop\TaskFlow\frontend\.next\cache\webpack\client-development\1.pack.gz'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'stat',
+  path: 'C:\\Users\\HP\\Desktop\\TaskFlow\\frontend\\.next\\cache\\webpack\\client-development\\1.pack.gz'
+}
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, stat 'C:\Users\HP\Desktop\TaskFlow\frontend\.next\cache\webpack\client-development\1.pack.gz'
+ ⨯ TypeError: __webpack_modules__[moduleId] is not a function
+    at Object.__webpack_require__ [as require] (C:\Users\HP\Desktop\TaskFlow\frontend\.next\server\webpack-runtime.js:33:42)
+    at JSON.parse (<anonymous>)
+    at JSON.parse (<anonymous>)
+digest: "2200948787"
+TypeError: __webpack_modules__[moduleId] is not a function
+    at Object.__webpack_require__ [as require] (C:\Users\HP\Desktop\TaskFlow\frontend\.next\server\webpack-runtime.js:33:42)
+    at require (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:40:20064)
+    at C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:108376
+    at ea (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:108583)
+    at C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:110813
+    at Object._fromJSON (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:111370)
+    at JSON.parse (<anonymous>)
+    at ec (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:109078)
+    at eo (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:108123)
+    at C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:115291
+    at C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:115308
+    at C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:115341
+    at C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:115358
+    at t (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:115581)
+ ⨯ TypeError: __webpack_modules__[moduleId] is not a function
+    at Object.__webpack_require__ [as require] (C:\Users\HP\Desktop\TaskFlow\frontend\.next\server\webpack-runtime.js:33:42)
+    at require (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:40:20064)
+    at C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:108376
+    at ea (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:108583)
+    at C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:110813
+    at Object._fromJSON (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:111370)
+    at JSON.parse (<anonymous>)
+    at ec (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:109078)
+    at eo (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:108123)
+    at C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:115291
+    at C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:115308
+    at C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:115341
+    at C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:115358
+    at t (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:115581) {
+  page: '/login'
+}
+ ⨯ Error: Cannot find module './55.js'
+Require stack:
+- C:\Users\HP\Desktop\TaskFlow\frontend\.next\server\webpack-runtime.js
+- C:\Users\HP\Desktop\TaskFlow\frontend\.next\server\pages\_document.js
+- C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\require.js
+- C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\load-components.js
+- C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\build\utils.js
+- C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\dev\hot-middleware.js
+- C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\dev\hot-reloader-webpack.js
+- C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\lib\router-utils\setup-dev-bundler.js
+- C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\lib\router-server.js
+- C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\lib\start-server.js
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1420:15)
+    at C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\require-hook.js:55:36
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1503:12)
+    at mod.require (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\require-hook.js:65:28)
+    at require (node:internal/modules/helpers:152:16)
+    at __webpack_require__.f.require (C:\Users\HP\Desktop\TaskFlow\frontend\.next\server\webpack-runtime.js:267:28)
+    at C:\Users\HP\Desktop\TaskFlow\frontend\.next\server\webpack-runtime.js:180:40
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (C:\Users\HP\Desktop\TaskFlow\frontend\.next\server\webpack-runtime.js:179:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (C:\Users\HP\Desktop\TaskFlow\frontend\.next\server\webpack-runtime.js:231:22)
+    at C:\Users\HP\Desktop\TaskFlow\frontend\.next\server\app\(auth)\login\page.js:1:9573
+    at Object.<anonymous> (C:\Users\HP\Desktop\TaskFlow\frontend\.next\server\app\(auth)\login\page.js:1:9618)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+    at Object..js (node:internal/modules/cjs/loader:1893:10)
+    at Module.load (node:internal/modules/cjs/loader:1480:32)
+    at Module._load (node:internal/modules/cjs/loader:1299:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1503:12)
+    at mod.require (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\require-hook.js:65:28)
+    at require (node:internal/modules/helpers:152:16)
+    at requirePage (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\require.js:109:84)
+    at C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\load-components.js:103:84
+    at async loadComponentsImpl (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\load-components.js:103:26)
+    at async DevServer.findPageComponentsImpl (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\next-server.js:714:36)
+    at async DevServer.findPageComponents (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\dev\next-dev-server.js:577:20)
+    at async DevServer.renderPageComponent (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\base-server.js:1962:32)
+    at async DevServer.pipeImpl (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\base-server.js:922:25)
+    at async NextNodeServer.handleCatchallRenderRequest (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\next-server.js:272:17)
+    at async DevServer.handleRequestImpl (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\base-server.js:818:17)
+    at async C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\dev\next-dev-server.js:339:20
+    at async Span.traceAsyncFn (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\trace\trace.js:154:20)
+    at async DevServer.handleRequest (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\dev\next-dev-server.js:336:24)
+    at async invokeRender (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\lib\router-server.js:179:21)
+    at async handleRequest (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\lib\router-server.js:359:24)
+    at async requestHandlerImpl (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\lib\router-server.js:383:13)
+    at async Server.requestListener (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\lib\start-server.js:141:13) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    'C:\\Users\\HP\\Desktop\\TaskFlow\\frontend\\.next\\server\\webpack-runtime.js',
+    'C:\\Users\\HP\\Desktop\\TaskFlow\\frontend\\.next\\server\\pages\\_document.js',
+    'C:\\Users\\HP\\Desktop\\TaskFlow\\node_modules\\.pnpm\\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\\node_modules\\next\\dist\\server\\require.js',
+    'C:\\Users\\HP\\Desktop\\TaskFlow\\node_modules\\.pnpm\\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\\node_modules\\next\\dist\\server\\load-components.js',
+    'C:\\Users\\HP\\Desktop\\TaskFlow\\node_modules\\.pnpm\\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\\node_modules\\next\\dist\\build\\utils.js',
+    'C:\\Users\\HP\\Desktop\\TaskFlow\\node_modules\\.pnpm\\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\\node_modules\\next\\dist\\server\\dev\\hot-middleware.js',
+    'C:\\Users\\HP\\Desktop\\TaskFlow\\node_modules\\.pnpm\\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\\node_modules\\next\\dist\\server\\dev\\hot-reloader-webpack.js',
+    'C:\\Users\\HP\\Desktop\\TaskFlow\\node_modules\\.pnpm\\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\\node_modules\\next\\dist\\server\\lib\\router-utils\\setup-dev-bundler.js',
+    'C:\\Users\\HP\\Desktop\\TaskFlow\\node_modules\\.pnpm\\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\\node_modules\\next\\dist\\server\\lib\\router-server.js',
+    'C:\\Users\\HP\\Desktop\\TaskFlow\\node_modules\\.pnpm\\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\\node_modules\\next\\dist\\server\\lib\\start-server.js'
+  ],
+  page: '/login'
+}
+ ⨯ TypeError: __webpack_modules__[moduleId] is not a function
+    at Object.__webpack_require__ [as require] (C:\Users\HP\Desktop\TaskFlow\frontend\.next\server\webpack-runtime.js:33:42)
+    at JSON.parse (<anonymous>)
+digest: "1750898933"
+ ⨯ Error: Cannot find module './55.js'
+Require stack:
+- C:\Users\HP\Desktop\TaskFlow\frontend\.next\server\webpack-runtime.js
+- C:\Users\HP\Desktop\TaskFlow\frontend\.next\server\app\page.js
+- C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\require.js
+- C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\load-components.js
+- C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\build\utils.js
+- C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\dev\hot-middleware.js
+- C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\dev\hot-reloader-webpack.js
+- C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\lib\router-utils\setup-dev-bundler.js
+- C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\lib\router-server.js
+- C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\lib\start-server.js
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1420:15)
+    at C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\require-hook.js:55:36
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1503:12)
+    at mod.require (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\require-hook.js:65:28)
+    at require (node:internal/modules/helpers:152:16)
+    at __webpack_require__.f.require (C:\Users\HP\Desktop\TaskFlow\frontend\.next\server\webpack-runtime.js:277:28)
+    at C:\Users\HP\Desktop\TaskFlow\frontend\.next\server\webpack-runtime.js:185:40
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (C:\Users\HP\Desktop\TaskFlow\frontend\.next\server\webpack-runtime.js:184:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (C:\Users\HP\Desktop\TaskFlow\frontend\.next\server\webpack-runtime.js:236:22)
+    at C:\Users\HP\Desktop\TaskFlow\frontend\.next\server\app\(auth)\login\page.js:1:9573
+    at Object.<anonymous> (C:\Users\HP\Desktop\TaskFlow\frontend\.next\server\app\(auth)\login\page.js:1:9618)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+    at Object..js (node:internal/modules/cjs/loader:1893:10)
+    at Module.load (node:internal/modules/cjs/loader:1480:32)
+    at Module._load (node:internal/modules/cjs/loader:1299:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1503:12)
+    at mod.require (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\require-hook.js:65:28)
+    at require (node:internal/modules/helpers:152:16)
+    at requirePage (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\require.js:109:84)
+    at C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\load-components.js:103:84
+    at async loadComponentsImpl (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\load-components.js:103:26)
+    at async DevServer.findPageComponentsImpl (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\next-server.js:714:36)
+    at async DevServer.findPageComponents (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\dev\next-dev-server.js:577:20)
+    at async DevServer.renderPageComponent (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\base-server.js:1962:32)
+    at async DevServer.pipeImpl (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\base-server.js:922:25)
+    at async NextNodeServer.handleCatchallRenderRequest (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\next-server.js:272:17)
+    at async DevServer.handleRequestImpl (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\base-server.js:818:17)
+    at async C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\dev\next-dev-server.js:339:20
+    at async Span.traceAsyncFn (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\trace\trace.js:154:20)
+    at async DevServer.handleRequest (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\dev\next-dev-server.js:336:24)
+    at async invokeRender (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\lib\router-server.js:179:21)
+    at async handleRequest (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\lib\router-server.js:359:24)
+    at async requestHandlerImpl (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\lib\router-server.js:383:13)
+    at async Server.requestListener (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\lib\start-server.js:141:13) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    'C:\\Users\\HP\\Desktop\\TaskFlow\\frontend\\.next\\server\\webpack-runtime.js',
+    'C:\\Users\\HP\\Desktop\\TaskFlow\\frontend\\.next\\server\\app\\page.js',
+    'C:\\Users\\HP\\Desktop\\TaskFlow\\node_modules\\.pnpm\\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\\node_modules\\next\\dist\\server\\require.js',
+    'C:\\Users\\HP\\Desktop\\TaskFlow\\node_modules\\.pnpm\\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\\node_modules\\next\\dist\\server\\load-components.js',
+    'C:\\Users\\HP\\Desktop\\TaskFlow\\node_modules\\.pnpm\\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\\node_modules\\next\\dist\\build\\utils.js',
+    'C:\\Users\\HP\\Desktop\\TaskFlow\\node_modules\\.pnpm\\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\\node_modules\\next\\dist\\server\\dev\\hot-middleware.js',
+    'C:\\Users\\HP\\Desktop\\TaskFlow\\node_modules\\.pnpm\\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\\node_modules\\next\\dist\\server\\dev\\hot-reloader-webpack.js',
+    'C:\\Users\\HP\\Desktop\\TaskFlow\\node_modules\\.pnpm\\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\\node_modules\\next\\dist\\server\\lib\\router-utils\\setup-dev-bundler.js',
+    'C:\\Users\\HP\\Desktop\\TaskFlow\\node_modules\\.pnpm\\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\\node_modules\\next\\dist\\server\\lib\\router-server.js',
+    'C:\\Users\\HP\\Desktop\\TaskFlow\\node_modules\\.pnpm\\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\\node_modules\\next\\dist\\server\\lib\\start-server.js'
+  ],
+  page: '/login'
+}
+ ⨯ Internal error: Error: Element type is invalid: expected a string (for built-in components) or a class/function (for composite components) but got: undefined. You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.
+    at aw (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:46775)
+    at aw (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:46505)
+    at a_ (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:49776)
+    at aj (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:53793)
+    at aC (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:52874)
+    at a_ (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:50095)
+    at aj (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:53793)
+    at C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:42336
+    at aw (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:42822)
+    at a_ (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:49776)
+    at aj (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:53793)
+    at aC (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:52874)
+    at a_ (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:50095)
+    at aw (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:42922)
+    at a_ (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:49776)
+    at aw (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:45321)
+    at a_ (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:49776)
+    at ab (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:11808)
+    at C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:16871
+    at aw (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:16908)
+    at a_ (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:49776)
+    at ab (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:11808)
+    at C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:16871
+    at aw (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:16908)
+    at aw (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:46505)
+    at a_ (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:49776)
+    at a_ (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:50067)
+    at C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:58612
+    at C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:59270
+    at aN (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:59278)
+    at Timeout._onTimeout (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:6939)
+    at listOnTimeout (node:internal/timers:608:17)
+    at process.processTimers (node:internal/timers:543:7)
+digest: "239286223"
+ ⨯ Internal error: Error: Element type is invalid: expected a string (for built-in components) or a class/function (for composite components) but got: undefined. You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.
+    at aw (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:46775)
+    at aw (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:46505)
+    at a_ (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:49776)
+    at aj (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:53793)
+    at aC (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:52874)
+    at a_ (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:50095)
+    at aj (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:53793)
+    at C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:42336
+    at aw (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:42822)
+    at a_ (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:49776)
+    at aj (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:53793)
+    at aC (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:52874)
+    at a_ (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:50095)
+    at aw (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:42922)
+    at a_ (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:49776)
+    at aw (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:45321)
+    at a_ (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:49776)
+    at ab (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:11808)
+    at C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:16871
+    at aw (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:16908)
+    at a_ (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:49776)
+    at ab (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:11808)
+    at C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:16871
+    at aw (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:16908)
+    at aw (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:46505)
+    at a_ (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:49776)
+    at a_ (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:50067)
+    at C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:58612
+    at C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:59270
+    at aN (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:59278)
+    at Timeout._onTimeout (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:6939)
+    at listOnTimeout (node:internal/timers:608:17)
+    at process.processTimers (node:internal/timers:543:7)
+digest: "239286223"
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, lstat 'C:\Users\HP\Desktop\TaskFlow\frontend\.next\server\app'
+<w> [webpack.cache.PackFileCacheStrategy/webpack.FileSystemInfo] Resolving '../../../../../../../frontend/.next/server/app/(dashboard)/dashboard/page' in C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server for build dependencies doesn't lead to expected result 'C:\Users\HP\Desktop\TaskFlow\frontend\.next\server\app\(dashboard)\dashboard\page.js', but to 'Error: Can't resolve '../../../../../../../frontend/.next/server/app/(dashboard)/dashboard/page' in 'C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server'' instead. Resolving dependencies are ignored for this path.
+<w>  at resolve commonjs file ../../../../../../../frontend/.next/server/app/(dashboard)/dashboard/page (expected C:\Users\HP\Desktop\TaskFlow\frontend\.next\server\app\(dashboard)\dashboard\page.js)
+<w>  at file dependencies C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\require.js
+<w>  at file C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\require.js
+<w>  at file dependencies C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\load-components.js
+<w>  at file C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\load-components.js
+<w>  at file dependencies C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\build\utils.js
+<w>  at file C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\build\utils.js
+<w>  at file dependencies C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\build\webpack\loaders\next-route-loader\index.js
+<w>  at file C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\build\webpack\loaders\next-route-loader\index.js
+<w>  at file dependencies C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\loader-runner\LoaderRunner.js
+<w>  at file C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\loader-runner\LoaderRunner.js
+<w>  at file dependencies C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\webpack\bundle5.js
+<w>  at file C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\webpack\bundle5.js
+<w>  at file dependencies C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\webpack\webpack.js
+<w>  at file C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\compiled\webpack\webpack.js
+<w>  at file dependencies C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\build\webpack\plugins\define-env-plugin.js
+<w>  at file C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\build\webpack\plugins\define-env-plugin.js
+<w>  at file dependencies C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\build\swc\index.js
+<w>  at file C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\build\swc\index.js
+<w>  at file dependencies C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\build\webpack\loaders\next-barrel-loader.js
+<w>  at file C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\build\webpack\loaders\next-barrel-loader.js
+<w>  at resolve commonjs C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\build\webpack\loaders\next-barrel-loader.js
+[Error: ENOENT: no such file or directory, stat 'C:\Users\HP\Desktop\TaskFlow\frontend\.next\cache\webpack\server-development\0.pack.gz'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'stat',
+  path: 'C:\\Users\\HP\\Desktop\\TaskFlow\\frontend\\.next\\cache\\webpack\\server-development\\0.pack.gz'
+}
+ ⨯ unhandledRejection: [Error: ENOENT: no such file or directory, stat 'C:\Users\HP\Desktop\TaskFlow\frontend\.next\cache\webpack\server-development\0.pack.gz'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'stat',
+  path: 'C:\\Users\\HP\\Desktop\\TaskFlow\\frontend\\.next\\cache\\webpack\\server-development\\0.pack.gz'
+}
+ ⨯ unhandledRejection: [Error: ENOENT: no such file or directory, stat 'C:\Users\HP\Desktop\TaskFlow\frontend\.next\cache\webpack\server-development\0.pack.gz'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'stat',
+  path: 'C:\\Users\\HP\\Desktop\\TaskFlow\\frontend\\.next\\cache\\webpack\\server-development\\0.pack.gz'
+}
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, stat 'C:\Users\HP\Desktop\TaskFlow\frontend\.next\cache\webpack\server-development\0.pack.gz'
+ ⨯ Error: Cannot find module './55.js'
+Require stack:
+- C:\Users\HP\Desktop\TaskFlow\frontend\.next\server\webpack-runtime.js
+- C:\Users\HP\Desktop\TaskFlow\frontend\.next\server\app\page.js
+- C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\require.js
+- C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\load-components.js
+- C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\build\utils.js
+- C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\dev\hot-middleware.js
+- C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\dev\hot-reloader-webpack.js
+- C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\lib\router-utils\setup-dev-bundler.js
+- C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\lib\router-server.js
+- C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\lib\start-server.js
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1420:15)
+    at C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\require-hook.js:55:36
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1503:12)
+    at mod.require (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\require-hook.js:65:28)
+    at require (node:internal/modules/helpers:152:16)
+    at __webpack_require__.f.require (C:\Users\HP\Desktop\TaskFlow\frontend\.next\server\webpack-runtime.js:267:28)
+    at C:\Users\HP\Desktop\TaskFlow\frontend\.next\server\webpack-runtime.js:180:40
+    at Array.reduce (<anonymous>)
+    at __webpack_require__.e (C:\Users\HP\Desktop\TaskFlow\frontend\.next\server\webpack-runtime.js:179:67)
+    at Array.map (<anonymous>)
+    at __webpack_require__.X (C:\Users\HP\Desktop\TaskFlow\frontend\.next\server\webpack-runtime.js:231:22)
+    at C:\Users\HP\Desktop\TaskFlow\frontend\.next\server\app\page.js:1:9788
+    at Object.<anonymous> (C:\Users\HP\Desktop\TaskFlow\frontend\.next\server\app\page.js:1:9837)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)
+    at Object..js (node:internal/modules/cjs/loader:1893:10)
+    at Module.load (node:internal/modules/cjs/loader:1480:32)
+    at Module._load (node:internal/modules/cjs/loader:1299:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1503:12)
+    at mod.require (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\require-hook.js:65:28)
+    at require (node:internal/modules/helpers:152:16)
+    at requirePage (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\require.js:109:84)
+    at C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\load-components.js:103:84
+    at async loadComponentsImpl (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\load-components.js:103:26)
+    at async DevServer.findPageComponentsImpl (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\next-server.js:714:36)
+    at async DevServer.findPageComponents (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\dev\next-dev-server.js:577:20)
+    at async DevServer.renderPageComponent (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\base-server.js:1962:32)
+    at async DevServer.pipeImpl (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\base-server.js:922:25)
+    at async NextNodeServer.handleCatchallRenderRequest (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\next-server.js:272:17)
+    at async DevServer.handleRequestImpl (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\base-server.js:818:17)
+    at async C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\dev\next-dev-server.js:339:20
+    at async Span.traceAsyncFn (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\trace\trace.js:154:20)
+    at async DevServer.handleRequest (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\dev\next-dev-server.js:336:24)
+    at async invokeRender (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\lib\router-server.js:179:21)
+    at async handleRequest (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\lib\router-server.js:359:24)
+    at async requestHandlerImpl (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\lib\router-server.js:383:13)
+    at async Server.requestListener (C:\Users\HP\Desktop\TaskFlow\node_modules\.pnpm\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\node_modules\next\dist\server\lib\start-server.js:141:13) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    'C:\\Users\\HP\\Desktop\\TaskFlow\\frontend\\.next\\server\\webpack-runtime.js',
+    'C:\\Users\\HP\\Desktop\\TaskFlow\\frontend\\.next\\server\\app\\page.js',
+    'C:\\Users\\HP\\Desktop\\TaskFlow\\node_modules\\.pnpm\\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\\node_modules\\next\\dist\\server\\require.js',
+    'C:\\Users\\HP\\Desktop\\TaskFlow\\node_modules\\.pnpm\\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\\node_modules\\next\\dist\\server\\load-components.js',
+    'C:\\Users\\HP\\Desktop\\TaskFlow\\node_modules\\.pnpm\\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\\node_modules\\next\\dist\\build\\utils.js',
+    'C:\\Users\\HP\\Desktop\\TaskFlow\\node_modules\\.pnpm\\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\\node_modules\\next\\dist\\server\\dev\\hot-middleware.js',
+    'C:\\Users\\HP\\Desktop\\TaskFlow\\node_modules\\.pnpm\\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\\node_modules\\next\\dist\\server\\dev\\hot-reloader-webpack.js',
+    'C:\\Users\\HP\\Desktop\\TaskFlow\\node_modules\\.pnpm\\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\\node_modules\\next\\dist\\server\\lib\\router-utils\\setup-dev-bundler.js',
+    'C:\\Users\\HP\\Desktop\\TaskFlow\\node_modules\\.pnpm\\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\\node_modules\\next\\dist\\server\\lib\\router-server.js',
+    'C:\\Users\\HP\\Desktop\\TaskFlow\\node_modules\\.pnpm\\next@14.2.35_@playwright+te_a466e221dfe76eb6a42f4d2db719b2ed\\node_modules\\next\\dist\\server\\lib\\start-server.js'
+  ],
+  page: '/'
+}

@@ -1,0 +1,32 @@
+=127.0.0.1 : The term '=127.0.0.1' is not recognized as the name of a cmdlet, function, script file, or operable progra
+m. Check the spelling of the name, or if a path was included, verify that the path is correct and try again.
+At line:1 char:1
++ ='127.0.0.1'; ='5022'; ='127.0.0.1'; ='3022'; node server.js
++ ~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (=127.0.0.1:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+=5022 : The term '=5022' is not recognized as the name of a cmdlet, function, script file, or operable program. Check t
+he spelling of the name, or if a path was included, verify that the path is correct and try again.
+At line:1 char:15
++ ='127.0.0.1'; ='5022'; ='127.0.0.1'; ='3022'; node server.js
++               ~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (=5022:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+=127.0.0.1 : The term '=127.0.0.1' is not recognized as the name of a cmdlet, function, script file, or operable progra
+m. Check the spelling of the name, or if a path was included, verify that the path is correct and try again.
+At line:1 char:24
++ ='127.0.0.1'; ='5022'; ='127.0.0.1'; ='3022'; node server.js
++                        ~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (=127.0.0.1:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+=3022 : The term '=3022' is not recognized as the name of a cmdlet, function, script file, or operable program. Check t
+he spelling of the name, or if a path was included, verify that the path is correct and try again.
+At line:1 char:38
++ ='127.0.0.1'; ='5022'; ='127.0.0.1'; ='3022'; node server.js
++                                      ~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (=3022:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 

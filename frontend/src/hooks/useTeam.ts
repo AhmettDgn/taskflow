@@ -8,7 +8,13 @@ import { getAuthContext } from '@/lib/supabase/auth-helpers';
 import { QUERY_KEYS, STALE_TIME } from '@/lib/constants';
 import type { Team, TeamMember } from '@/lib/types';
 
-export function useTeams() {
+interface UseTeamsOptions {
+  enabled?: boolean;
+}
+
+export function useTeams(options: UseTeamsOptions = {}) {
+  const { enabled = true } = options;
+
   return useQuery<Team[]>({
     queryKey: [QUERY_KEYS.teams],
     queryFn: async () => {
@@ -24,6 +30,7 @@ export function useTeams() {
         .filter(Boolean);
     },
     staleTime: STALE_TIME,
+    enabled,
   });
 }
 

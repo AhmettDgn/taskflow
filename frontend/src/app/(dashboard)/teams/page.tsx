@@ -14,7 +14,7 @@ export default function TeamsPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Ekipler</h1>
+          <h1 className="text-2xl font-bold" data-testid="teams-heading">Ekipler</h1>
           <p className="text-sm text-muted-foreground">Üye olduğunuz ekipler</p>
         </div>
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">

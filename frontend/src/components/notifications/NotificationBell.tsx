@@ -6,14 +6,42 @@ import { Button } from '@/components/ui/button';
 import { useNotifications, useRealtimeNotifications } from '@/hooks/useNotifications';
 import { NotificationDropdown } from './NotificationDropdown';
 
+export function shouldLoadNotifications(isReady: boolean, isOpen: boolean) {
+  return isReady || isOpen;
+}
+
 export function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isReady, setIsReady] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  const { data: notifications = [] } = useNotifications();
-  useRealtimeNotifications();
+  const shouldFetchNotifications = shouldLoadNotifications(isReady, isOpen);
+  const { data: notifications = [] } = useNotifications({ enabled: shouldFetchNotifications });
 
-  const unreadCount = notifications.filter((n) => !n.is_read).length;
+  useRealtimeNotifications({ enabled: shouldFetchNotifications });
+
+  const unreadCount = notifications.filter((notification) => !notification.is_read).length;
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const browserWindow = window as Window &
+      typeof globalThis & {
+        requestIdleCallback?: (
+          callback: IdleRequestCallback,
+          options?: IdleRequestOptions
+        ) => number;
+        cancelIdleCallback?: (handle: number) => void;
+      };
+
+    if (typeof browserWindow.requestIdleCallback === 'function') {
+      const idleId = browserWindow.requestIdleCallback(() => setIsReady(true), { timeout: 1500 });
+      return () => browserWindow.cancelIdleCallback?.(idleId);
+    }
+
+    const timeoutId = setTimeout(() => setIsReady(true), 1500);
+    return () => clearTimeout(timeoutId);
+  }, []);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -25,6 +53,7 @@ export function NotificationBell() {
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     }
+
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen]);
 
@@ -32,6 +61,7 @@ export function NotificationBell() {
     function handleEsc(event: KeyboardEvent) {
       if (event.key === 'Escape') setIsOpen(false);
     }
+
     document.addEventListener('keydown', handleEsc);
     return () => document.removeEventListener('keydown', handleEsc);
   }, []);
@@ -45,6 +75,7 @@ export function NotificationBell() {
         aria-expanded={isOpen}
         onClick={() => setIsOpen((prev) => !prev)}
         className="relative"
+        data-testid="notification-bell-button"
       >
         <Bell className="h-5 w-5" />
         {unreadCount > 0 && (
@@ -55,7 +86,10 @@ export function NotificationBell() {
       </Button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full z-50 mt-1 w-[min(20rem,calc(100vw-1rem))] max-w-[calc(100vw-1rem)] rounded-xl border border-border bg-white shadow-lg sm:w-80">
+        <div
+          className="absolute right-0 top-full z-50 mt-1 w-[min(20rem,calc(100vw-1rem))] max-w-[calc(100vw-1rem)] rounded-xl border border-border bg-white shadow-lg sm:w-80"
+          data-testid="notification-dropdown"
+        >
           <NotificationDropdown
             notifications={notifications}
             onClose={() => setIsOpen(false)}

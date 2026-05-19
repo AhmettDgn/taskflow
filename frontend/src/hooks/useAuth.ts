@@ -32,3 +32,10 @@ export function useAuth() {
 
   return { user, loading, signOut };
 }
+
+export function useSignOut() {
+  return useCallback(async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+  }, []);
+}

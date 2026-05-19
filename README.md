@@ -26,7 +26,14 @@ pnpm --filter frontend build
 pnpm --filter backend build
 pnpm --filter frontend start -- --hostname 127.0.0.1 --port 3021
 pnpm --filter backend start
+pnpm test:unit
+pnpm test:integration
+pnpm test:smoke
+pnpm test:functional
+pnpm test:predeploy
 ```
+
+Detailed test notes live in [docs/testing.md](docs/testing.md).
 
 ## Environment Files
 
@@ -99,3 +106,42 @@ pnpm dev --turbo
 - Backend stays bound to `127.0.0.1:5021`.
 - Frontend talks to the API through relative `/api` paths.
 - PM2 process names stay fixed as `taskflow-frontend` and `taskflow-backend`.
+
+## Automated Deploy
+
+Pushes to `main` can deploy automatically through GitHub Actions once the repository secrets are configured.
+
+Required GitHub repository secrets:
+
+- `DEPLOY_HOST`
+- `DEPLOY_USER`
+- `DEPLOY_PORT`
+- `DEPLOY_PATH`
+- `DEPLOY_SSH_PRIVATE_KEY`
+
+Recommended defaults for this project:
+
+- `DEPLOY_USER=yusuf`
+- `DEPLOY_PORT=22`
+- `DEPLOY_PATH=~/projects/taskflow`
+
+Workflow behavior:
+
+- `verify` runs on GitHub Actions with `pnpm install --frozen-lockfile`, `pnpm test:unit`, `pnpm test:integration`, and `pnpm build`.
+- `deploy` connects over SSH and runs `deploy/scripts/deploy-on-server.sh` on the server.
+- The server only reloads PM2 after `pnpm test:predeploy` and `pnpm build` succeed.
+- The server-side release gate runs on isolated ports `3121` and `5121`, so it validates the freshly pulled code without disturbing the live PM2 processes on `3021` and `5021`.
+- If PM2 reload succeeds but the post-deploy health checks fail, the script rolls back to the previous Git commit automatically.
+
+Server prerequisites for automated deploy:
+
+- `git`
+- `bash`
+- `nvm`
+- Node `24`
+- `corepack` / `pnpm`
+- `pm2`
+- `curl`
+- root-level `frontend.env` and `backend.env`
+
+The production release gate remains `pnpm test:predeploy`, and it is intentionally enforced on the server before PM2 reload.

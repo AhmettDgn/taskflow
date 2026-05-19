@@ -6,7 +6,7 @@ export default function CreateTeamPage() {
   return (
     <div className="mx-auto max-w-md space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Ekip Oluştur</h1>
+        <h1 className="text-2xl font-bold" data-testid="team-create-heading">Ekip Oluştur</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Yeni bir ekip oluşturun ve üyeleri davet edin.
         </p>

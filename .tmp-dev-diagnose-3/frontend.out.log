@@ -1,0 +1,63 @@
+
+> frontend@0.1.0 dev C:\Users\HP\Desktop\TaskFlow\frontend
+> node ./scripts/dev.mjs "--" "--hostname" "localhost" "--port" "3121"
+
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:3121
+  - Network:      http://[::1]:3121
+  - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 1598ms
+ ✓ Compiled /src/middleware in 133ms (126 modules)
+ ○ Compiling /login ...
+ ✓ Compiled /login in 1613ms (596 modules)
+ ✓ Compiled in 191ms (304 modules)
+ GET /login 200 in 1825ms
+ GET /login? 200 in 20ms
+ ✓ Compiled in 203ms (304 modules)
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 1253ms (790 modules)
+ GET /login 500 in 1515ms
+ GET /login 500 in 20ms
+ ○ Compiling /dashboard ...
+ ✓ Compiled /dashboard in 1678ms (1265 modules)
+ ✓ Compiled /_not-found in 222ms (1266 modules)
+ GET /_next/static/css/app/layout.css?v=1779196351542 404 in 299ms
+ GET /_next/static/chunks/main-app.js?v=1779196351542 404 in 133ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 132ms
+ GET /_next/static/chunks/app/error.js 404 in 131ms
+ GET /dashboard 200 in 3306ms
+ ○ Compiling /favicon.ico ...
+ ✓ Compiled / in 1587ms (614 modules)
+ ✓ Compiled in 145ms (684 modules)
+ GET /favicon.ico 200 in 1854ms
+ GET /login 500 in 645ms
+ GET /_next/static/css/app/layout.css?v=1779196354960 404 in 50ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 43ms
+ GET /_next/static/chunks/main-app.js?v=1779196354960 404 in 45ms
+ GET /_next/static/chunks/app/error.js 404 in 43ms
+ GET / 200 in 728ms
+ GET /_next/static/css/app/layout.css?v=1779196356710 404 in 52ms
+ GET /_next/static/chunks/main-app.js?v=1779196356710 404 in 63ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 62ms
+ GET /_next/static/chunks/app/error.js 404 in 62ms
+ GET /dashboard 200 in 1037ms
+ GET /_next/static/css/app/layout.css?v=1779196371550 404 in 54ms
+ GET /_next/static/chunks/main-app.js?v=1779196371550 404 in 46ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 46ms
+ GET /_next/static/chunks/app/error.js 404 in 46ms
+ GET / 200 in 430ms
+ GET /_next/static/css/app/layout.css?v=1779196373353 404 in 51ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 32ms
+ GET /_next/static/chunks/main-app.js?v=1779196373353 404 in 35ms
+ GET /_next/static/chunks/app/error.js 404 in 33ms
+ GET /dashboard 200 in 1074ms
+ GET /_next/static/css/app/layout.css?v=1779196373353 404 in 35ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 39ms
+ ✓ Compiled in 588ms (1010 modules)
+ ✓ Compiled / in 72ms (341 modules)
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 733ms (1026 modules)
+ GET / 500 in 861ms
+[?25h

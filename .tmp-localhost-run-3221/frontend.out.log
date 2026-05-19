@@ -1,0 +1,11 @@
+
+> frontend@0.1.0 dev C:\Users\HP\Desktop\TaskFlow\frontend
+> node ./scripts/dev.mjs "--" "--hostname" "localhost" "--port" "3221"
+
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:3221
+  - Network:      http://[::1]:3221
+  - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 1303ms

@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import { getMiddlewareRedirectPath } from '@/lib/auth-routing';
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -31,19 +32,13 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  const isAuthPage =
-    pathname.startsWith('/login') ||
-    pathname.startsWith('/register') ||
-    pathname.startsWith('/forgot-password');
+  const redirectPath = getMiddlewareRedirectPath({
+    hasUser: Boolean(user),
+    pathname,
+  });
 
-  const isAuthCallback = pathname.startsWith('/auth/');
-
-  if (!user && !isAuthPage && !isAuthCallback) {
-    return NextResponse.redirect(new URL('/login', request.url));
-  }
-
-  if (user && isAuthPage) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+  if (redirectPath) {
+    return NextResponse.redirect(new URL(redirectPath, request.url));
   }
 
   return supabaseResponse;
@@ -51,6 +46,15 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/',
+    '/login',
+    '/register',
+    '/forgot-password',
+    '/auth/:path*',
+    '/dashboard/:path*',
+    '/teams/:path*',
+    '/tasks/:path*',
+    '/notifications/:path*',
+    '/profile/:path*',
   ],
 };

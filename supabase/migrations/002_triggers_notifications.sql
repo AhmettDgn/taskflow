@@ -9,6 +9,7 @@ begin
 end;
 $$;
 
+drop trigger if exists tasks_updated_at on public.tasks;
 create trigger tasks_updated_at
   before update on public.tasks
   for each row execute function public.handle_updated_at();
@@ -25,11 +26,17 @@ begin
     new.email,
     new.raw_user_meta_data->>'full_name',
     new.raw_user_meta_data->>'avatar_url'
-  );
+  )
+  on conflict (id) do update
+  set
+    email = excluded.email,
+    full_name = excluded.full_name,
+    avatar_url = excluded.avatar_url;
   return new;
 end;
 $$;
 
+drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
@@ -51,6 +58,7 @@ begin
 end;
 $$;
 
+drop trigger if exists on_task_assigned on public.task_assignees;
 create trigger on_task_assigned
   after insert on public.task_assignees
   for each row execute function public.handle_task_assigned();
@@ -75,6 +83,7 @@ begin
 end;
 $$;
 
+drop trigger if exists on_task_status_changed on public.tasks;
 create trigger on_task_status_changed
   after update on public.tasks
   for each row execute function public.handle_task_status_changed();
@@ -98,6 +107,7 @@ begin
 end;
 $$;
 
+drop trigger if exists on_comment_added on public.comments;
 create trigger on_comment_added
   after insert on public.comments
   for each row execute function public.handle_comment_added();

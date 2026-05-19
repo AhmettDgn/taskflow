@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   LayoutDashboard, Users, CheckSquare, Bell,
@@ -19,38 +18,30 @@ import { useUIStore } from '@/store/useUIStore';
 import { useTeams } from '@/hooks/useTeam';
 
 export function CommandPalette() {
-  const { isCommandOpen, toggleCommand } = useUIStore();
-  const { data: teams = [] } = useTeams();
+  const { isCommandOpen, setCommandOpen } = useUIStore();
+  const { data: teams = [] } = useTeams({ enabled: isCommandOpen });
   const router = useRouter();
-
-  // Global ⌘K / Ctrl+K listener
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        toggleCommand();
-      }
-    };
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
-  }, [toggleCommand]);
 
   const go = (href: string) => {
     router.push(href);
-    toggleCommand();
+    setCommandOpen(false);
   };
 
   return (
-    <CommandDialog open={isCommandOpen} onOpenChange={toggleCommand}>
-      <CommandInput placeholder="Nereye gitmek istersiniz?" />
-      <CommandList>
-        <CommandEmpty>Sonuç bulunamadı.</CommandEmpty>
+    <div data-testid="command-palette-dialog">
+      <CommandDialog open={isCommandOpen} onOpenChange={setCommandOpen}>
+        <CommandInput
+          placeholder="Nereye gitmek istersiniz?"
+          data-testid="command-palette-input"
+        />
+        <CommandList>
+        <CommandEmpty>Sonuc bulunamadi.</CommandEmpty>
 
         <CommandGroup heading="Sayfalar">
           {[
             { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
             { href: '/teams', label: 'Ekipler', icon: Users },
-            { href: '/tasks', label: 'Görevlerim', icon: CheckSquare },
+            { href: '/tasks', label: 'Gorevlerim', icon: CheckSquare },
             { href: '/notifications', label: 'Bildirimler', icon: Bell },
             { href: '/profile', label: 'Profil', icon: User },
           ].map(({ href, label, icon: Icon }) => (
@@ -86,14 +77,17 @@ export function CommandPalette() {
         <CommandGroup heading="Eylemler">
           <CommandItem onSelect={() => go('/teams/create')}>
             <Plus className="mr-2 h-4 w-4 text-muted-foreground" />
-            Yeni Ekip Oluştur
+            Yeni Ekip Olustur
           </CommandItem>
           <CommandItem onSelect={() => go('/teams/join')}>
             <UserPlus className="mr-2 h-4 w-4 text-muted-foreground" />
-            Ekibe Katıl
+            Ekibe Katil
           </CommandItem>
         </CommandGroup>
-      </CommandList>
-    </CommandDialog>
+        </CommandList>
+      </CommandDialog>
+    </div>
   );
 }
+
+export default CommandPalette;

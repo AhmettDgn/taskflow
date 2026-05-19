@@ -1,0 +1,5 @@
+Cannot start TaskFlow dev because these ports are already in use: frontend dev port localhost:3121.
+Close the process using those ports or override them for this session.
+Quick localhost fallback: pnpm dev:localhost --turbo
+PowerShell example: $env:FRONTEND_PORT=3121; $env:BACKEND_PORT=5121; pnpm dev --turbo
+Bash example: FRONTEND_PORT=3121 BACKEND_PORT=5121 pnpm dev --turbo
