@@ -217,6 +217,9 @@ git pull --ff-only origin "${DEPLOY_BRANCH}"
 log "Installing dependencies"
 run_pnpm install --frozen-lockfile
 
+log "Ensuring Playwright browser binaries are installed"
+run_pnpm --filter frontend exec playwright install chromium
+
 log "Running release gate"
 E2E_BASE_URL="http://127.0.0.1:3121" \
 E2E_BACKEND_BASE_URL="http://127.0.0.1:5121" \
