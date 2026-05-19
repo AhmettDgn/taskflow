@@ -44,24 +44,15 @@ jobs:
     needs: verify
     steps:
       - name: Sunucuya Baglan ve PM2 ile Guncelle
-        # Bu eklenti bizim yerimize tum SSH ve Known_hosts islerini halleder!
         uses: appleboy/ssh-action@v1.0.3
         with:
-          # Github Secrets'taki mevcut degiskenlerin:
           host: ${{ secrets.REMOTE_HOST }}
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            # 1. Proje yoluna git (Takım arkadaşın Yusuf'un dizini)
             cd /home/yusuf/projects/taskflow
-            
-            # 2. GitHub'dan yeni kodlari cek
             git pull origin main
-            
-            # 3. pnpm ile paketleri kur ve derle
             corepack enable
             pnpm install --frozen-lockfile
             pnpm build
-            
-            # 4. PM2 ile projeyi kesintisiz yeniden baslat
             pm2 reload taskflow
