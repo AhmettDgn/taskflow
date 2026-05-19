@@ -80,6 +80,17 @@ jobs:
           mkdir -p "${HOME}/.ssh"
           ssh-keyscan -p "${DEPLOY_PORT:-22}" -H "${DEPLOY_HOST}" >> "${HOME}/.ssh/known_hosts"
 
+      - name: Upload deploy script
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          REMOTE_USER="${DEPLOY_USER:-yusuf}"
+          REMOTE_PORT="${DEPLOY_PORT:-22}"
+
+          scp -P "${REMOTE_PORT}" deploy/scripts/deploy-on-server.sh \
+            "${REMOTE_USER}@${DEPLOY_HOST}:/tmp/taskflow-deploy-on-server.sh"
+
       - name: Deploy on server
         shell: bash
         env:
@@ -92,4 +103,4 @@ jobs:
           REMOTE_PATH="${DEPLOY_PATH:-~/projects/taskflow}"
 
           ssh -o BatchMode=yes -p "${REMOTE_PORT}" "${REMOTE_USER}@${DEPLOY_HOST}" \
-            "DEPLOY_PATH=${REMOTE_PATH} DEPLOY_BRANCH=main GITHUB_SHA=${GITHUB_SHA} bash ${REMOTE_PATH}/deploy/scripts/deploy-on-server.sh"
+            "chmod 700 /tmp/taskflow-deploy-on-server.sh && DEPLOY_PATH=${REMOTE_PATH} DEPLOY_BRANCH=main GITHUB_SHA=${GITHUB_SHA} bash /tmp/taskflow-deploy-on-server.sh"
