@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { getAppOrigin } from '@/lib/utils';
+import { getAuthRedirectOrigin } from '@/lib/utils';
 
 const inputClassName =
   'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50';
@@ -34,7 +34,7 @@ export function ForgotPasswordForm() {
     const { createClient } = await import('@/lib/supabase/client');
     const supabase = createClient();
     const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
-      redirectTo: `${getAppOrigin()}/auth/callback?next=/profile`,
+      redirectTo: `${getAuthRedirectOrigin()}/auth/callback?next=/profile`,
     });
 
     if (error) {

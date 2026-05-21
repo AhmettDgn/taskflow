@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { getAppOrigin } from '@/lib/utils';
+import { getAuthRedirectOrigin } from '@/lib/utils';
 import dynamic from 'next/dynamic';
 
 const GoogleAuthButton = dynamic(
@@ -20,7 +20,7 @@ function isValidEmail(value: string) {
 }
 
 function getEmailRedirectTo() {
-  return `${getAppOrigin()}/auth/callback`;
+  return `${getAuthRedirectOrigin()}/auth/callback`;
 }
 
 export function RegisterForm() {

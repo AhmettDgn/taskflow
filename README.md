@@ -55,6 +55,8 @@ FRONTEND_HOST=127.0.0.1
 FRONTEND_PORT=3021
 ```
 
+For OAuth flows, `NEXT_PUBLIC_APP_URL` is treated as the canonical callback origin when it is set. If you point it at `https://taskflow.arslanyusuf.com`, Google sign-in and password reset flows will return to that public domain even when you trigger them from `localhost`.
+
 Production runners load root-level env files:
 
 - `frontend.env`

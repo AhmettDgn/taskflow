@@ -2,11 +2,11 @@
 
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { getAppOrigin } from '@/lib/utils';
+import { getAuthRedirectOrigin } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
 
 function getRedirectTo() {
-  return `${getAppOrigin()}/auth/callback?next=/dashboard`;
+  return `${getAuthRedirectOrigin()}/auth/callback?next=/dashboard`;
 }
 
 function GoogleIcon() {

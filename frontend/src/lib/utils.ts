@@ -5,12 +5,26 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+function normalizeOrigin(origin: string) {
+  return origin.replace(/\/+$/, '');
+}
+
 export function getAppOrigin() {
-  if (typeof window !== 'undefined' && window.location.origin) {
-    return window.location.origin;
+  const configuredOrigin = process.env.NEXT_PUBLIC_APP_URL?.trim();
+
+  if (configuredOrigin) {
+    return normalizeOrigin(configuredOrigin);
   }
 
-  return process.env.NEXT_PUBLIC_APP_URL ?? '';
+  if (typeof window !== 'undefined' && window.location.origin) {
+    return normalizeOrigin(window.location.origin);
+  }
+
+  return '';
+}
+
+export function getAuthRedirectOrigin() {
+  return getAppOrigin();
 }
 
 export function formatDate(date: null | string): string {
