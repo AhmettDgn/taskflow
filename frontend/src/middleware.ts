@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { getMiddlewareRedirectPath } from '@/lib/auth-routing';
+import { getPublicRedirectUrl } from '@/lib/public-origin';
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -38,7 +39,12 @@ export async function middleware(request: NextRequest) {
   });
 
   if (redirectPath) {
-    return NextResponse.redirect(new URL(redirectPath, request.url));
+    return NextResponse.redirect(
+      getPublicRedirectUrl(redirectPath, {
+        headers: request.headers,
+        requestUrl: request.url,
+      })
+    );
   }
 
   return supabaseResponse;
