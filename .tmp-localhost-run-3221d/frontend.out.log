@@ -61,3 +61,15 @@
  GET /teams/336ffce9-f2b6-4635-91be-b7eac82e4389/list 500 in 237ms
  GET /.well-known/appspecific/com.chrome.devtools.json 500 in 17ms
  GET /favicon.ico 200 in 10ms
+ ✓ Compiled in 577ms (1533 modules)
+ ✓ Compiled in 524ms (1533 modules)
+ ✓ Compiled in 341ms (1535 modules)
+ ✓ Compiled in 119ms (826 modules)
+ ✓ Compiled in 90ms (826 modules)
+ ✓ Compiled in 885ms (1545 modules)
+ ✓ Compiled in 218ms (831 modules)
+   Reload env: .env.local
+ ✓ Compiled in 921ms (1671 modules)
+ ✓ Compiled in 508ms (1529 modules)
+ ✓ Compiled in 421ms (1529 modules)
+ ✓ Compiled in 132ms (823 modules)

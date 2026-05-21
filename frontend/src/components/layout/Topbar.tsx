@@ -8,6 +8,7 @@ import { useUIStore } from '@/store/useUIStore';
 import { useSignOut } from '@/hooks/useAuth';
 import { useTeam } from '@/hooks/useTeam';
 import type { UserSummary } from '@/lib/types';
+import { NotificationBell } from '@/components/notifications/NotificationBell';
 
 function useBreadcrumb() {
   const pathname = usePathname();
@@ -121,6 +122,8 @@ export function Topbar({ user }: TopbarProps) {
         </span>
         <span className="max-w-28 truncate">{displayName}</span>
       </Link>
+
+      <NotificationBell />
 
       <button
         type="button"
