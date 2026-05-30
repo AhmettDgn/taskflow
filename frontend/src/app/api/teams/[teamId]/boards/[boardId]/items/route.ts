@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { authorizeTeamMember } from '@/lib/server/team-auth';
+import { sendBoardItemNotifications } from '@/lib/server/telegram';
 import { boardItemSchema } from '@/lib/validations/boards';
-import type { BoardItem } from '@/lib/types';
+import type { BoardItem, Profile } from '@/lib/types';
 
 export async function POST(
   request: Request,
@@ -14,7 +15,7 @@ export async function POST(
 
     const { data: board } = await auth.admin
       .from('boards')
-      .select('id')
+      .select('id, name')
       .eq('id', boardId)
       .eq('team_id', teamId)
       .maybeSingle();
@@ -57,6 +58,45 @@ export async function POST(
 
     if (insertError) {
       return NextResponse.json({ error: insertError.message }, { status: 400 });
+    }
+
+    // Notify other team members (except the actor) via Telegram — best-effort.
+    try {
+      const { data: team } = await auth.admin
+        .from('teams')
+        .select('name')
+        .eq('id', teamId)
+        .maybeSingle();
+
+      const { data: members } = await auth.admin
+        .from('team_members')
+        .select('user_id, profiles(id, telegram_chat_id)')
+        .eq('team_id', teamId);
+
+      const actorName =
+        auth.user.email?.split('@')[0] ?? 'Bir kullanıcı';
+
+      const recipients = (members ?? [])
+        .map((member) => member.profiles as unknown as Pick<Profile, 'id' | 'telegram_chat_id'> | null)
+        .filter(
+          (profile): profile is Pick<Profile, 'id' | 'telegram_chat_id'> =>
+            !!profile && profile.id !== auth.user.id
+        );
+
+      if (recipients.length > 0) {
+        await sendBoardItemNotifications({
+          recipients,
+          boardName: board.name,
+          teamName: team?.name ?? 'Ekip',
+          item: item as BoardItem,
+          actorName,
+          teamId,
+          headers: request.headers,
+          requestUrl: request.url,
+        });
+      }
+    } catch {
+      // Notifications must never fail the item creation.
     }
 
     return NextResponse.json({ item: item as BoardItem }, { status: 201 });

@@ -1,0 +1,432 @@
+import { createAdminClient } from '@/lib/supabase/admin';
+import { getPublicRedirectUrl } from '@/lib/public-origin';
+import {
+  answerCallbackQuery,
+  getTelegramBotToken,
+  sendTelegramMessage,
+  type TelegramReplyMarkup,
+} from '@/lib/server/telegram';
+import type { TaskStatus } from '@/lib/types';
+import type { SupabaseClient } from '@supabase/supabase-js';
+
+// ---------------------------------------------------------------------------
+// Minimal Telegram update shapes (only the fields we use)
+// ---------------------------------------------------------------------------
+interface TgUser {
+  id: number;
+  first_name?: string;
+  username?: string;
+}
+
+interface TgMessage {
+  message_id: number;
+  chat: { id: number };
+  from?: TgUser;
+  text?: string;
+  reply_to_message?: { text?: string };
+}
+
+interface TgCallbackQuery {
+  id: string;
+  from: TgUser;
+  message?: TgMessage;
+  data?: string;
+}
+
+export interface TelegramUpdate {
+  message?: TgMessage;
+  callback_query?: TgCallbackQuery;
+}
+
+export interface TelegramContext {
+  headers: Headers;
+  requestUrl: string;
+}
+
+const STATUS_LABELS: Record<TaskStatus, string> = {
+  todo: 'To Do',
+  in_progress: 'In Progress',
+  done: 'Done',
+  on_hold: 'On Hold',
+};
+
+const STATUS_ORDER: TaskStatus[] = ['todo', 'in_progress', 'done', 'on_hold'];
+
+// Matches the hidden marker embedded in the force-reply prompt: [#<teamId>]
+const TEAM_MARKER = /\[#([0-9a-fA-F-]{36})\]/;
+
+// ---------------------------------------------------------------------------
+// Low-level send helpers
+// ---------------------------------------------------------------------------
+async function sendMessage(chatId: string | number, text: string, replyMarkup?: TelegramReplyMarkup) {
+  const botToken = getTelegramBotToken();
+  if (!botToken) return;
+  try {
+    await sendTelegramMessage({ chatId: String(chatId), text, botToken, replyMarkup });
+  } catch {
+    // Best-effort; never throw out of the webhook handler.
+  }
+}
+
+function statusKeyboard(taskId: string): TelegramReplyMarkup {
+  return {
+    inline_keyboard: [
+      STATUS_ORDER.slice(0, 2).map((status) => ({
+        text: STATUS_LABELS[status],
+        callback_data: `s:${taskId}:${status}`,
+      })),
+      STATUS_ORDER.slice(2).map((status) => ({
+        text: STATUS_LABELS[status],
+        callback_data: `s:${taskId}:${status}`,
+      })),
+    ],
+  };
+}
+
+// ---------------------------------------------------------------------------
+// User resolution + membership
+// ---------------------------------------------------------------------------
+interface ResolvedUser {
+  id: string;
+  full_name: string | null;
+  email: string;
+}
+
+async function resolveTelegramUser(
+  admin: SupabaseClient,
+  chatId: number
+): Promise<ResolvedUser | null> {
+  const { data } = await admin
+    .from('profiles')
+    .select('id, full_name, email')
+    .eq('telegram_chat_id', String(chatId))
+    .maybeSingle();
+
+  return (data as ResolvedUser | null) ?? null;
+}
+
+async function isTeamMember(admin: SupabaseClient, teamId: string, userId: string) {
+  const { data } = await admin
+    .from('team_members')
+    .select('id')
+    .eq('team_id', teamId)
+    .eq('user_id', userId)
+    .maybeSingle();
+  return !!data;
+}
+
+function notLinkedMessage(chatId: number) {
+  return [
+    'TaskFlow hesabınız bu Telegram ile bağlı değil.',
+    '',
+    `Chat ID'niz: ${chatId}`,
+    '',
+    'TaskFlow → Profil sayfasına gidip bu Chat ID değerini kaydedin, ardından /start yazın.',
+  ].join('\n');
+}
+
+function helpMessage() {
+  return [
+    'TaskFlow botuna hoş geldiniz! Komutlar:',
+    '',
+    '/ekipler — ekiplerinizi ve görevlerini görün',
+    '/gorevlerim — size atanan görevler',
+    '/yardim — bu mesaj',
+    '',
+    'Görevlerin altındaki butonlarla durumu değiştirebilir (To Do / In Progress / Done / On Hold), ekip menüsünden yeni görev ekleyebilirsiniz.',
+  ].join('\n');
+}
+
+// ---------------------------------------------------------------------------
+// Message (command) handling
+// ---------------------------------------------------------------------------
+async function handleMessage(admin: SupabaseClient, message: TgMessage, ctx: TelegramContext) {
+  const chatId = message.chat.id;
+  const text = (message.text ?? '').trim();
+
+  const user = await resolveTelegramUser(admin, chatId);
+  if (!user) {
+    await sendMessage(chatId, notLinkedMessage(chatId));
+    return;
+  }
+
+  // New-task title: a reply to our force-reply prompt carrying the [#teamId] marker.
+  const replyText = message.reply_to_message?.text;
+  if (replyText) {
+    const teamId = replyText.match(TEAM_MARKER)?.[1];
+    if (teamId) {
+      await createTaskFromReply(admin, { chatId, user, teamId, title: text });
+      return;
+    }
+  }
+
+  const command = text.split(/\s+/)[0]?.toLowerCase();
+  switch (command) {
+    case '/start':
+    case '/yardim':
+    case '/help':
+      await sendMessage(chatId, helpMessage());
+      return;
+    case '/ekipler':
+      await sendTeamList(admin, chatId, user);
+      return;
+    case '/gorevlerim':
+      await sendMyTasks(admin, chatId, user, ctx);
+      return;
+    default:
+      await sendMessage(chatId, 'Anlaşılmadı. Komutlar için /yardim yazın.');
+  }
+}
+
+async function sendTeamList(admin: SupabaseClient, chatId: number, user: ResolvedUser) {
+  const { data } = await admin
+    .from('team_members')
+    .select('teams(id, name)')
+    .eq('user_id', user.id);
+
+  const teams = (data ?? [])
+    .map((row) => row.teams as unknown as { id: string; name: string } | null)
+    .filter((team): team is { id: string; name: string } => !!team);
+
+  if (teams.length === 0) {
+    await sendMessage(chatId, 'Henüz bir ekibe üye değilsiniz.');
+    return;
+  }
+
+  await sendMessage(chatId, 'Ekipleriniz:', {
+    inline_keyboard: teams.map((team) => [{ text: team.name, callback_data: `t:${team.id}` }]),
+  });
+}
+
+interface TaskRow {
+  id: string;
+  title: string;
+  status: TaskStatus;
+  team_id: string;
+}
+
+function buildTaskText(task: TaskRow, teamName: string, taskUrl: string) {
+  return [
+    `📋 ${task.title}`,
+    `Ekip: ${teamName}`,
+    `Durum: ${STATUS_LABELS[task.status]}`,
+    taskUrl,
+  ].join('\n');
+}
+
+async function sendMyTasks(
+  admin: SupabaseClient,
+  chatId: number,
+  user: ResolvedUser,
+  ctx: TelegramContext
+) {
+  const { data } = await admin
+    .from('task_assignees')
+    .select('tasks(id, title, status, team_id, teams(name))')
+    .eq('user_id', user.id);
+
+  const tasks = (data ?? [])
+    .map((row) => row.tasks as unknown as (TaskRow & { teams?: { name: string } }) | null)
+    .filter((task): task is TaskRow & { teams?: { name: string } } => !!task);
+
+  if (tasks.length === 0) {
+    await sendMessage(chatId, 'Size atanmış görev yok.');
+    return;
+  }
+
+  await sendMessage(chatId, `Size atanan ${tasks.length} görev:`);
+  for (const task of tasks) {
+    const taskUrl = getPublicRedirectUrl(`/teams/${task.team_id}/tasks/${task.id}`, ctx);
+    await sendMessage(
+      chatId,
+      buildTaskText(task, task.teams?.name ?? 'Ekip', taskUrl),
+      statusKeyboard(task.id)
+    );
+  }
+}
+
+async function sendTeamTasks(
+  admin: SupabaseClient,
+  chatId: number,
+  user: ResolvedUser,
+  teamId: string,
+  ctx: TelegramContext
+) {
+  if (!(await isTeamMember(admin, teamId, user.id))) {
+    await sendMessage(chatId, 'Bu ekibe erişiminiz yok.');
+    return;
+  }
+
+  const { data: team } = await admin.from('teams').select('name').eq('id', teamId).maybeSingle();
+  const teamName = (team as { name: string } | null)?.name ?? 'Ekip';
+
+  const { data } = await admin
+    .from('tasks')
+    .select('id, title, status, team_id')
+    .eq('team_id', teamId)
+    .order('created_at', { ascending: false });
+
+  const tasks = (data ?? []) as TaskRow[];
+
+  await sendMessage(chatId, `"${teamName}" görevleri (${tasks.length}):`, {
+    inline_keyboard: [[{ text: '➕ Görev Ekle', callback_data: `n:${teamId}` }]],
+  });
+
+  for (const task of tasks) {
+    const taskUrl = getPublicRedirectUrl(`/teams/${task.team_id}/tasks/${task.id}`, ctx);
+    await sendMessage(chatId, buildTaskText(task, teamName, taskUrl), statusKeyboard(task.id));
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Callback (inline button) handling
+// ---------------------------------------------------------------------------
+async function handleCallback(admin: SupabaseClient, query: TgCallbackQuery, ctx: TelegramContext) {
+  const chatId = query.message?.chat.id ?? query.from.id;
+  const data = query.data ?? '';
+
+  const user = await resolveTelegramUser(admin, query.from.id);
+  if (!user) {
+    await answerCallbackQuery(query.id, 'Hesabınız bağlı değil');
+    await sendMessage(chatId, notLinkedMessage(query.from.id));
+    return;
+  }
+
+  if (data.startsWith('t:')) {
+    await answerCallbackQuery(query.id);
+    await sendTeamTasks(admin, chatId, user, data.slice(2), ctx);
+    return;
+  }
+
+  if (data.startsWith('n:')) {
+    const teamId = data.slice(2);
+    await answerCallbackQuery(query.id);
+    if (!(await isTeamMember(admin, teamId, user.id))) {
+      await sendMessage(chatId, 'Bu ekibe erişiminiz yok.');
+      return;
+    }
+    await sendMessage(
+      chatId,
+      `Yeni görevin başlığını bu mesajı yanıtlayarak yazın.\n[#${teamId}]`,
+      { force_reply: true }
+    );
+    return;
+  }
+
+  if (data.startsWith('s:')) {
+    const [, taskId, status] = data.split(':');
+    await changeTaskStatus(admin, { query, chatId, user, taskId, status: status as TaskStatus });
+    return;
+  }
+
+  await answerCallbackQuery(query.id);
+}
+
+async function changeTaskStatus(
+  admin: SupabaseClient,
+  {
+    query,
+    chatId,
+    user,
+    taskId,
+    status,
+  }: {
+    query: TgCallbackQuery;
+    chatId: number;
+    user: ResolvedUser;
+    taskId: string;
+    status: TaskStatus;
+  }
+) {
+  if (!STATUS_ORDER.includes(status)) {
+    await answerCallbackQuery(query.id, 'Geçersiz durum');
+    return;
+  }
+
+  const { data: task } = await admin
+    .from('tasks')
+    .select('id, title, team_id')
+    .eq('id', taskId)
+    .maybeSingle();
+
+  if (!task) {
+    await answerCallbackQuery(query.id, 'Görev bulunamadı');
+    return;
+  }
+
+  const taskRow = task as { id: string; title: string; team_id: string };
+  if (!(await isTeamMember(admin, taskRow.team_id, user.id))) {
+    await answerCallbackQuery(query.id, 'Yetkiniz yok');
+    return;
+  }
+
+  const { error } = await admin
+    .from('tasks')
+    .update({ status, updated_at: new Date().toISOString() })
+    .eq('id', taskId);
+
+  if (error) {
+    await answerCallbackQuery(query.id, 'Güncellenemedi');
+    return;
+  }
+
+  await answerCallbackQuery(query.id, `Durum: ${STATUS_LABELS[status]}`);
+  await sendMessage(chatId, `✅ "${taskRow.title}" → ${STATUS_LABELS[status]}`);
+}
+
+async function createTaskFromReply(
+  admin: SupabaseClient,
+  {
+    chatId,
+    user,
+    teamId,
+    title,
+  }: { chatId: number; user: ResolvedUser; teamId: string; title: string }
+) {
+  const trimmed = title.trim();
+  if (!trimmed) {
+    await sendMessage(chatId, 'Görev başlığı boş olamaz.');
+    return;
+  }
+
+  if (!(await isTeamMember(admin, teamId, user.id))) {
+    await sendMessage(chatId, 'Bu ekibe erişiminiz yok.');
+    return;
+  }
+
+  const { data: task, error } = await admin
+    .from('tasks')
+    .insert({
+      team_id: teamId,
+      title: trimmed.slice(0, 200),
+      status: 'todo',
+      priority: 'medium',
+      created_by: user.id,
+    })
+    .select('id, title')
+    .single();
+
+  if (error || !task) {
+    await sendMessage(chatId, 'Görev oluşturulamadı.');
+    return;
+  }
+
+  const created = task as { id: string; title: string };
+  await sendMessage(chatId, `✅ Görev eklendi: "${created.title}"`, statusKeyboard(created.id));
+}
+
+// ---------------------------------------------------------------------------
+// Entry point
+// ---------------------------------------------------------------------------
+export async function handleTelegramUpdate(update: TelegramUpdate, ctx: TelegramContext) {
+  const admin = createAdminClient();
+
+  if (update.callback_query) {
+    await handleCallback(admin, update.callback_query, ctx);
+    return;
+  }
+
+  if (update.message?.text) {
+    await handleMessage(admin, update.message, ctx);
+  }
+}

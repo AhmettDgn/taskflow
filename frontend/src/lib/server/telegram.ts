@@ -2,6 +2,7 @@ import { getPublicRedirectUrl } from '@/lib/public-origin';
 import { formatDate } from '@/lib/utils';
 import type {
   AssignmentNotificationWarning,
+  BoardItem,
   Profile,
   Task,
   TaskPriority,
@@ -69,14 +70,22 @@ function buildTaskAssignmentMessage({
   return lines.join('\n');
 }
 
-async function sendTelegramMessage({
+export type TelegramReplyMarkup = Record<string, unknown>;
+
+export function getTelegramBotToken() {
+  return process.env.TELEGRAM_BOT_TOKEN?.trim() ?? '';
+}
+
+export async function sendTelegramMessage({
   chatId,
   text,
   botToken,
+  replyMarkup,
 }: {
   chatId: string;
   text: string;
   botToken: string;
+  replyMarkup?: TelegramReplyMarkup;
 }) {
   const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
     method: 'POST',
@@ -85,6 +94,7 @@ async function sendTelegramMessage({
       chat_id: chatId,
       text,
       disable_web_page_preview: true,
+      ...(replyMarkup ? { reply_markup: replyMarkup } : {}),
     }),
   });
 
@@ -101,6 +111,28 @@ async function sendTelegramMessage({
     }
 
     throw new Error(errorMessage);
+  }
+}
+
+/**
+ * Acknowledges a callback query so Telegram stops showing the loading spinner on the
+ * tapped inline button. Best-effort — failures are swallowed.
+ */
+export async function answerCallbackQuery(callbackQueryId: string, text?: string) {
+  const botToken = getTelegramBotToken();
+  if (!botToken) return;
+
+  try {
+    await fetch(`https://api.telegram.org/bot${botToken}/answerCallbackQuery`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        callback_query_id: callbackQueryId,
+        ...(text ? { text } : {}),
+      }),
+    });
+  } catch {
+    // Ignore — acknowledging is non-critical.
   }
 }
 
@@ -171,4 +203,90 @@ export async function sendTaskAssignmentNotifications({
   );
 
   return warnings.filter((warning): warning is AssignmentNotificationWarning => warning !== null);
+}
+
+const BOARD_ITEM_TYPE_LABELS: Record<BoardItem['type'], string> = {
+  link: 'link',
+  password: 'şifre',
+  note: 'not',
+};
+
+function buildBoardItemMessage({
+  boardName,
+  teamName,
+  item,
+  actorName,
+  boardUrl,
+}: {
+  boardName: string;
+  teamName: string;
+  item: Pick<BoardItem, 'type' | 'label' | 'value'>;
+  actorName: string;
+  boardUrl: string;
+}) {
+  const typeLabel = BOARD_ITEM_TYPE_LABELS[item.type];
+  const lines = [
+    'Panoya yeni icerik eklendi',
+    '',
+    `Ekip: ${teamName}`,
+    `Pano: ${boardName}`,
+    `Tur: ${typeLabel}`,
+    `Ekleyen: ${actorName}`,
+  ];
+
+  if (item.label) {
+    lines.push(`Etiket: ${item.label}`);
+  }
+
+  // Never leak password values into chat history; links/notes are safe to preview.
+  if (item.type !== 'password') {
+    lines.push(`Icerik: ${item.value}`);
+  }
+
+  lines.push(`Pano: ${boardUrl}`);
+  return lines.join('\n');
+}
+
+/**
+ * Notifies every team member (except the actor) who has a linked Telegram chat that a
+ * new board item was added. Best-effort: individual send failures are ignored so the
+ * caller's request is never blocked by Telegram.
+ */
+export async function sendBoardItemNotifications({
+  recipients,
+  boardName,
+  teamName,
+  item,
+  actorName,
+  teamId,
+  headers,
+  requestUrl,
+}: {
+  recipients: Pick<Profile, 'id' | 'telegram_chat_id'>[];
+  boardName: string;
+  teamName: string;
+  item: Pick<BoardItem, 'type' | 'label' | 'value'>;
+  actorName: string;
+  teamId: string;
+  headers: Headers;
+  requestUrl: string;
+}) {
+  const botToken = getTelegramBotToken();
+  if (!botToken) return;
+
+  const boardUrl = getPublicRedirectUrl(`/teams/${teamId}/boards`, { headers, requestUrl });
+  const message = buildBoardItemMessage({ boardName, teamName, item, actorName, boardUrl });
+
+  await Promise.all(
+    recipients.map(async (recipient) => {
+      const chatId = normalizeTelegramChatId(recipient.telegram_chat_id);
+      if (!chatId) return;
+
+      try {
+        await sendTelegramMessage({ chatId, text: message, botToken });
+      } catch {
+        // Ignore — board notifications are best-effort.
+      }
+    })
+  );
 }
