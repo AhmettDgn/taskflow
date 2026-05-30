@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { isValidTelegramChatId, normalizeTelegramChatId } from '@/lib/server/telegram';
 
 function getFallbackFullName(user: {
   email?: string | null;
@@ -43,6 +44,7 @@ export async function GET() {
         email: user.email ?? '',
         full_name: getFallbackFullName(user),
         avatar_url: user.user_metadata?.avatar_url ?? null,
+        telegram_chat_id: null,
       })
       .select()
       .single();
@@ -69,18 +71,43 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { fullName } = await request.json();
-    const trimmedFullName = String(fullName ?? '').trim();
+    const admin = createAdminClient();
+    const { data: existingProfile } = await admin
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .maybeSingle();
 
-    if (trimmedFullName.length < 2) {
+    const { fullName, telegramChatId } = await request.json();
+    const hasFullName = fullName !== undefined;
+    const hasTelegramChatId = telegramChatId !== undefined;
+
+    if (!hasFullName && !hasTelegramChatId) {
+      return NextResponse.json({ error: 'Guncellenecek alan bulunamadi' }, { status: 400 });
+    }
+
+    const trimmedFullName = hasFullName
+      ? String(fullName ?? '').trim()
+      : existingProfile?.full_name ?? getFallbackFullName(user);
+
+    if (hasFullName && trimmedFullName.length < 2) {
       return NextResponse.json({ error: 'Ad soyad en az 2 karakter olmali' }, { status: 400 });
     }
 
-    if (trimmedFullName.length > 50) {
+    if (hasFullName && trimmedFullName.length > 50) {
       return NextResponse.json({ error: 'Ad soyad en fazla 50 karakter olabilir' }, { status: 400 });
     }
 
-    const admin = createAdminClient();
+    const normalizedTelegramChatId = hasTelegramChatId
+      ? normalizeTelegramChatId(telegramChatId)
+      : existingProfile?.telegram_chat_id ?? null;
+
+    if (!isValidTelegramChatId(normalizedTelegramChatId)) {
+      return NextResponse.json(
+        { error: 'Telegram chat ID yalnizca sayilardan olusmali' },
+        { status: 400 }
+      );
+    }
 
     const { data: profile, error: profileError } = await admin
       .from('profiles')
@@ -90,6 +117,7 @@ export async function PATCH(request: Request) {
           email: user.email ?? '',
           full_name: trimmedFullName,
           avatar_url: user.user_metadata?.avatar_url ?? null,
+          telegram_chat_id: normalizedTelegramChatId,
         },
         { onConflict: 'id' }
       )
@@ -100,15 +128,17 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: profileError.message }, { status: 400 });
     }
 
-    const { error: authUpdateError } = await admin.auth.admin.updateUserById(user.id, {
-      user_metadata: {
-        ...user.user_metadata,
-        full_name: trimmedFullName,
-      },
-    });
+    if (hasFullName) {
+      const { error: authUpdateError } = await admin.auth.admin.updateUserById(user.id, {
+        user_metadata: {
+          ...user.user_metadata,
+          full_name: trimmedFullName,
+        },
+      });
 
-    if (authUpdateError) {
-      return NextResponse.json({ error: authUpdateError.message }, { status: 400 });
+      if (authUpdateError) {
+        return NextResponse.json({ error: authUpdateError.message }, { status: 400 });
+      }
     }
 
     return NextResponse.json({ profile });

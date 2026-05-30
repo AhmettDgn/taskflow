@@ -7,6 +7,11 @@ import { getApiPath } from '@/lib/api';
 import { QUERY_KEYS, STALE_TIME } from '@/lib/constants';
 import type { Profile } from '@/lib/types';
 
+interface UpdateProfileValues {
+  fullName?: string;
+  telegramChatId?: string | null;
+}
+
 export function useProfile() {
   return useQuery<Profile>({
     queryKey: [QUERY_KEYS.profile],
@@ -30,12 +35,15 @@ export function useUpdateProfile() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ fullName }: { fullName: string }) => {
+    mutationFn: async ({ fullName, telegramChatId }: UpdateProfileValues) => {
       const response = await fetch(getApiPath('/profile'), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ fullName }),
+        body: JSON.stringify({
+          ...(fullName !== undefined && { fullName }),
+          ...(telegramChatId !== undefined && { telegramChatId }),
+        }),
       });
 
       const json = await response.json();
@@ -43,13 +51,15 @@ export function useUpdateProfile() {
         throw new Error(json.error ?? 'Profil guncellenemedi');
       }
 
-      const supabase = createClient();
-      const { error } = await supabase.auth.updateUser({
-        data: { full_name: fullName },
-      });
+      if (fullName !== undefined) {
+        const supabase = createClient();
+        const { error } = await supabase.auth.updateUser({
+          data: { full_name: fullName },
+        });
 
-      if (error) {
-        throw error;
+        if (error) {
+          throw error;
+        }
       }
 
       return json.profile as Profile;

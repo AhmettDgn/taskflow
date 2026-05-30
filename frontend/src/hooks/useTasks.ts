@@ -1,13 +1,107 @@
 'use client';
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { getApiPath } from '@/lib/api';
 import { createClient } from '@/lib/supabase/client';
-import { getAuthContext } from '@/lib/supabase/auth-helpers';
 import { QUERY_KEYS, STALE_TIME } from '@/lib/constants';
 import { markLocalMutation } from '@/hooks/useRealtimeTasks';
-import type { Task, TaskAssignee, TaskPriority, TaskStatus } from '@/lib/types';
+import type { AssignmentNotificationWarning, Task, TaskAssignee, TaskPriority, TaskStatus } from '@/lib/types';
 import type { CreateTaskFormValues, UpdateTaskFormValues } from '@/lib/validations/tasks';
+
+interface TaskMutationResponse {
+  task: Task;
+  warnings: AssignmentNotificationWarning[];
+}
+
+export function getAssignmentWarningToastMessage(warnings: AssignmentNotificationWarning[]) {
+  if (warnings.length === 0) return null;
+  if (warnings.length === 1) return warnings[0].message;
+
+  const missingTelegramCount = warnings.filter((warning) => warning.reason === 'telegram_not_linked').length;
+  const sendFailedCount = warnings.filter((warning) => warning.reason === 'telegram_send_failed').length;
+  const messages = [];
+
+  if (missingTelegramCount > 0) {
+    messages.push(`${missingTelegramCount} kullanicinin Telegram chat ID bilgisi eksik`);
+  }
+
+  if (sendFailedCount > 0) {
+    messages.push(`${sendFailedCount} kullaniciya Telegram mesaji gonderilemedi`);
+  }
+
+  return `${messages.join('. ')}.`;
+}
+
+function showAssignmentWarnings(warnings: AssignmentNotificationWarning[]) {
+  const message = getAssignmentWarningToastMessage(warnings);
+  if (message) {
+    toast.warning(message);
+  }
+}
+
+async function updateTaskRequest(
+  teamId: string,
+  taskId: string,
+  values: UpdateTaskFormValues
+) {
+  const response = await fetch(getApiPath(`/teams/${teamId}/tasks/${taskId}`), {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(values),
+  });
+
+  const json = await response.json();
+  if (!response.ok) {
+    throw new Error(json.error ?? 'Gorev guncellenemedi');
+  }
+
+  return json as { task: Task };
+}
+
+async function syncTaskAssigneesRequest(teamId: string, taskId: string, userIds: string[]) {
+  const response = await fetch(getApiPath(`/teams/${teamId}/tasks/${taskId}/assignees`), {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ userIds }),
+  });
+
+  const json = await response.json();
+  if (!response.ok) {
+    throw new Error(json.error ?? 'Atama guncellenemedi');
+  }
+
+  return json as TaskMutationResponse;
+}
+
+async function getCurrentAssigneeIds({
+  queryClient,
+  teamId,
+  taskId,
+}: {
+  queryClient: ReturnType<typeof useQueryClient>;
+  teamId: string;
+  taskId: string;
+}) {
+  const cachedTask =
+    queryClient.getQueryData<Task>([QUERY_KEYS.task, taskId]) ??
+    queryClient.getQueryData<Task[]>([QUERY_KEYS.tasks, teamId])?.find((task) => task.id === taskId);
+
+  if (cachedTask) {
+    return (cachedTask.task_assignees ?? []).map((assignee) => assignee.user_id);
+  }
+
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('task_assignees')
+    .select('user_id')
+    .eq('task_id', taskId);
+
+  if (error) throw error;
+  return (data ?? []).map((assignee) => assignee.user_id);
+}
 
 export function useTasks(teamId: string) {
   return useQuery<Task[]>({
@@ -52,39 +146,28 @@ export function useCreateTask(teamId: string) {
 
   return useMutation({
     mutationFn: async (values: CreateTaskFormValues) => {
-      const { supabase, userId } = await getAuthContext();
+      const response = await fetch(getApiPath(`/teams/${teamId}/tasks`), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(values),
+      });
 
-      const { data: task, error } = await supabase
-        .from('tasks')
-        .insert({
-          team_id: teamId,
-          title: values.title,
-          description: values.description ?? null,
-          status: values.status,
-          priority: values.priority,
-          due_date: values.due_date ?? null,
-          created_by: userId,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      if (values.assignee_ids?.length) {
-        await supabase.from('task_assignees').insert(
-          values.assignee_ids.map((uid) => ({ task_id: task.id, user_id: uid }))
-        );
+      const json = await response.json();
+      if (!response.ok) {
+        throw new Error(json.error ?? 'Gorev olusturulamadi');
       }
 
-      return task as Task;
+      return json as TaskMutationResponse;
     },
-    onSuccess: (task) => {
+    onSuccess: ({ task, warnings }) => {
       markLocalMutation(task.id);
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.tasks, teamId] });
-      toast.success('Görev oluşturuldu');
+      toast.success('Gorev olusturuldu');
+      showAssignmentWarnings(warnings);
     },
     onError: (error: Error) => {
-      toast.error(error.message ?? 'Görev oluşturulamadı');
+      toast.error(error.message ?? 'Gorev olusturulamadi');
     },
   });
 }
@@ -94,31 +177,17 @@ export function useUpdateTask(teamId: string) {
 
   return useMutation({
     mutationFn: async ({ taskId, values }: { taskId: string; values: UpdateTaskFormValues }) => {
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from('tasks')
-        .update({
-          ...(values.title !== undefined && { title: values.title }),
-          ...(values.description !== undefined && { description: values.description }),
-          ...(values.status !== undefined && { status: values.status }),
-          ...(values.priority !== undefined && { priority: values.priority }),
-          ...(values.due_date !== undefined && { due_date: values.due_date || null }),
-        })
-        .eq('id', taskId)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data as Task;
+      const { task } = await updateTaskRequest(teamId, taskId, values);
+      return task;
     },
     onSuccess: (task) => {
       markLocalMutation(task.id);
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.tasks, teamId] });
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.task, task.id] });
-      toast.success('Görev güncellendi');
+      toast.success('Gorev guncellendi');
     },
     onError: (error: Error) => {
-      toast.error(error.message ?? 'Görev güncellenemedi');
+      toast.error(error.message ?? 'Gorev guncellenemedi');
     },
   });
 }
@@ -128,13 +197,7 @@ export function useUpdateTaskStatus(teamId: string) {
 
   return useMutation({
     mutationFn: async ({ taskId, status }: { taskId: string; status: TaskStatus }) => {
-      const supabase = createClient();
-      const { error } = await supabase
-        .from('tasks')
-        .update({ status })
-        .eq('id', taskId);
-
-      if (error) throw error;
+      await updateTaskRequest(teamId, taskId, { status });
       return { taskId, status };
     },
     onMutate: async ({ taskId, status }) => {
@@ -143,7 +206,7 @@ export function useUpdateTaskStatus(teamId: string) {
       const previous = queryClient.getQueryData<Task[]>([QUERY_KEYS.tasks, teamId]);
 
       queryClient.setQueryData<Task[]>([QUERY_KEYS.tasks, teamId], (old) =>
-        old?.map((t) => (t.id === taskId ? { ...t, status } : t)) ?? []
+        old?.map((task) => (task.id === taskId ? { ...task, status } : task)) ?? []
       );
 
       return { previous };
@@ -152,7 +215,7 @@ export function useUpdateTaskStatus(teamId: string) {
       if (context?.previous) {
         queryClient.setQueryData([QUERY_KEYS.tasks, teamId], context.previous);
       }
-      toast.error('Durum güncellenemedi');
+      toast.error('Durum guncellenemedi');
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.tasks, teamId] });
@@ -165,9 +228,7 @@ export function useUpdateTaskPriority(teamId: string) {
 
   return useMutation({
     mutationFn: async ({ taskId, priority }: { taskId: string; priority: TaskPriority }) => {
-      const supabase = createClient();
-      const { error } = await supabase.from('tasks').update({ priority }).eq('id', taskId);
-      if (error) throw error;
+      await updateTaskRequest(teamId, taskId, { priority });
       return { taskId, priority };
     },
     onMutate: async ({ taskId, priority }) => {
@@ -175,7 +236,7 @@ export function useUpdateTaskPriority(teamId: string) {
       await queryClient.cancelQueries({ queryKey: [QUERY_KEYS.tasks, teamId] });
       const previous = queryClient.getQueryData<Task[]>([QUERY_KEYS.tasks, teamId]);
       queryClient.setQueryData<Task[]>([QUERY_KEYS.tasks, teamId], (old) =>
-        old?.map((t) => (t.id === taskId ? { ...t, priority } : t)) ?? []
+        old?.map((task) => (task.id === taskId ? { ...task, priority } : task)) ?? []
       );
       return { previous };
     },
@@ -183,7 +244,7 @@ export function useUpdateTaskPriority(teamId: string) {
       if (context?.previous) {
         queryClient.setQueryData([QUERY_KEYS.tasks, teamId], context.previous);
       }
-      toast.error('Öncelik güncellenemedi');
+      toast.error('Oncelik guncellenemedi');
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.tasks, teamId] });
@@ -196,9 +257,7 @@ export function useUpdateTaskDueDate(teamId: string) {
 
   return useMutation({
     mutationFn: async ({ taskId, dueDate }: { taskId: string; dueDate: string | null }) => {
-      const supabase = createClient();
-      const { error } = await supabase.from('tasks').update({ due_date: dueDate }).eq('id', taskId);
-      if (error) throw error;
+      await updateTaskRequest(teamId, taskId, { due_date: dueDate ?? '' });
       return { taskId, dueDate };
     },
     onMutate: async ({ taskId, dueDate }) => {
@@ -206,7 +265,7 @@ export function useUpdateTaskDueDate(teamId: string) {
       await queryClient.cancelQueries({ queryKey: [QUERY_KEYS.tasks, teamId] });
       const previous = queryClient.getQueryData<Task[]>([QUERY_KEYS.tasks, teamId]);
       queryClient.setQueryData<Task[]>([QUERY_KEYS.tasks, teamId], (old) =>
-        old?.map((t) => (t.id === taskId ? { ...t, due_date: dueDate } : t)) ?? []
+        old?.map((task) => (task.id === taskId ? { ...task, due_date: dueDate } : task)) ?? []
       );
       return { previous };
     },
@@ -214,7 +273,7 @@ export function useUpdateTaskDueDate(teamId: string) {
       if (context?.previous) {
         queryClient.setQueryData([QUERY_KEYS.tasks, teamId], context.previous);
       }
-      toast.error('Tarih güncellenemedi');
+      toast.error('Tarih guncellenemedi');
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.tasks, teamId] });
@@ -227,9 +286,7 @@ export function useUpdateTaskTitle(teamId: string) {
 
   return useMutation({
     mutationFn: async ({ taskId, title }: { taskId: string; title: string }) => {
-      const supabase = createClient();
-      const { error } = await supabase.from('tasks').update({ title }).eq('id', taskId);
-      if (error) throw error;
+      await updateTaskRequest(teamId, taskId, { title });
       return { taskId, title };
     },
     onMutate: async ({ taskId, title }) => {
@@ -237,7 +294,7 @@ export function useUpdateTaskTitle(teamId: string) {
       await queryClient.cancelQueries({ queryKey: [QUERY_KEYS.tasks, teamId] });
       const previous = queryClient.getQueryData<Task[]>([QUERY_KEYS.tasks, teamId]);
       queryClient.setQueryData<Task[]>([QUERY_KEYS.tasks, teamId], (old) =>
-        old?.map((t) => (t.id === taskId ? { ...t, title } : t)) ?? []
+        old?.map((task) => (task.id === taskId ? { ...task, title } : task)) ?? []
       );
       return { previous };
     },
@@ -245,7 +302,7 @@ export function useUpdateTaskTitle(teamId: string) {
       if (context?.previous) {
         queryClient.setQueryData([QUERY_KEYS.tasks, teamId], context.previous);
       }
-      toast.error('Başlık güncellenemedi');
+      toast.error('Baslik guncellenemedi');
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.tasks, teamId] });
@@ -258,21 +315,8 @@ export function useSetTaskAssignees(teamId: string) {
 
   return useMutation({
     mutationFn: async ({ taskId, userIds }: { taskId: string; userIds: string[] }) => {
-      const supabase = createClient();
-      const { error: deleteError } = await supabase
-        .from('task_assignees')
-        .delete()
-        .eq('task_id', taskId);
-      if (deleteError) throw deleteError;
-
-      if (userIds.length > 0) {
-        const { error: insertError } = await supabase
-          .from('task_assignees')
-          .insert(userIds.map((uid) => ({ task_id: taskId, user_id: uid })));
-        if (insertError) throw insertError;
-      }
-
-      return { taskId, userIds };
+      const result = await syncTaskAssigneesRequest(teamId, taskId, userIds);
+      return { taskId, userIds, warnings: result.warnings };
     },
     onMutate: async ({ taskId, userIds }) => {
       markLocalMutation(taskId);
@@ -284,27 +328,31 @@ export function useSetTaskAssignees(teamId: string) {
       ]);
 
       queryClient.setQueryData<Task[]>([QUERY_KEYS.tasks, teamId], (old) =>
-        old?.map((t) => {
-          if (t.id !== taskId) return t;
-          const optimisticAssignees: TaskAssignee[] = userIds.map((uid) => {
-            const member = members?.find((m) => m.user_id === uid);
+        old?.map((task) => {
+          if (task.id !== taskId) return task;
+          const optimisticAssignees: TaskAssignee[] = userIds.map((userId) => {
+            const member = members?.find((teamMember) => teamMember.user_id === userId);
             return {
-              id: `optimistic-${uid}`,
+              id: `optimistic-${userId}`,
               task_id: taskId,
-              user_id: uid,
+              user_id: userId,
               profiles: member?.profiles as TaskAssignee['profiles'],
             };
           });
-          return { ...t, task_assignees: optimisticAssignees };
+          return { ...task, task_assignees: optimisticAssignees };
         }) ?? []
       );
+
       return { previous };
+    },
+    onSuccess: ({ warnings }) => {
+      showAssignmentWarnings(warnings);
     },
     onError: (_err, _vars, context) => {
       if (context?.previous) {
         queryClient.setQueryData([QUERY_KEYS.tasks, teamId], context.previous);
       }
-      toast.error('Atama güncellenemedi');
+      toast.error('Atama guncellenemedi');
     },
     onSettled: (_data, _err, { taskId }) => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.tasks, teamId] });
@@ -337,10 +385,10 @@ export function useDeleteTask(teamId: string) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.tasks, teamId] });
-      toast.success('Görev silindi');
+      toast.success('Gorev silindi');
     },
     onError: (error: Error) => {
-      toast.error(error.message ?? 'Görev silinemedi');
+      toast.error(error.message ?? 'Gorev silinemedi');
     },
   });
 }
@@ -350,19 +398,20 @@ export function useAssignUser(teamId: string) {
 
   return useMutation({
     mutationFn: async ({ taskId, userId }: { taskId: string; userId: string }) => {
-      const supabase = createClient();
-      const { error } = await supabase
-        .from('task_assignees')
-        .insert({ task_id: taskId, user_id: userId });
+      const currentAssigneeIds = await getCurrentAssigneeIds({ queryClient, teamId, taskId });
+      const nextAssigneeIds = currentAssigneeIds.includes(userId)
+        ? currentAssigneeIds
+        : [...currentAssigneeIds, userId];
 
-      if (error) throw error;
+      return syncTaskAssigneesRequest(teamId, taskId, nextAssigneeIds);
     },
-    onSuccess: (_data, { taskId }) => {
+    onSuccess: ({ warnings }, { taskId }) => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.tasks, teamId] });
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.task, taskId] });
+      showAssignmentWarnings(warnings);
     },
     onError: (error: Error) => {
-      toast.error(error.message ?? 'Kullanıcı atanamadı');
+      toast.error(error.message ?? 'Kullanici atanamadi');
     },
   });
 }
@@ -372,21 +421,17 @@ export function useUnassignUser(teamId: string) {
 
   return useMutation({
     mutationFn: async ({ taskId, userId }: { taskId: string; userId: string }) => {
-      const supabase = createClient();
-      const { error } = await supabase
-        .from('task_assignees')
-        .delete()
-        .eq('task_id', taskId)
-        .eq('user_id', userId);
-
-      if (error) throw error;
+      const currentAssigneeIds = await getCurrentAssigneeIds({ queryClient, teamId, taskId });
+      const nextAssigneeIds = currentAssigneeIds.filter((currentUserId) => currentUserId !== userId);
+      return syncTaskAssigneesRequest(teamId, taskId, nextAssigneeIds);
     },
-    onSuccess: (_data, { taskId }) => {
+    onSuccess: ({ warnings }, { taskId }) => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.tasks, teamId] });
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.task, taskId] });
+      showAssignmentWarnings(warnings);
     },
     onError: (error: Error) => {
-      toast.error(error.message ?? 'Atama kaldırılamadı');
+      toast.error(error.message ?? 'Atama kaldirilamadi');
     },
   });
 }

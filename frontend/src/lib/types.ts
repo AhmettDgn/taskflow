@@ -4,12 +4,14 @@ export type TaskStatus = 'todo' | 'in_progress' | 'done' | 'on_hold';
 export type TaskPriority = 'low' | 'medium' | 'high';
 export type TeamRole = 'admin' | 'member';
 export type NotificationType = 'task_assigned' | 'status_changed' | 'comment_added';
+export type AssignmentNotificationWarningReason = 'telegram_not_linked' | 'telegram_send_failed';
 
 export interface Profile {
   id: string;
   email: string;
   full_name: string | null;
   avatar_url: string | null;
+  telegram_chat_id: string | null;
 }
 
 export interface UserSummary {
@@ -72,4 +74,11 @@ export interface Notification {
   task_id: string | null;
   is_read: boolean;
   created_at: string;
+}
+
+export interface AssignmentNotificationWarning {
+  user_id: string;
+  recipient_name: string;
+  reason: AssignmentNotificationWarningReason;
+  message: string;
 }

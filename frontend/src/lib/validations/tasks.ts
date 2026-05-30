@@ -14,5 +14,10 @@ export const createTaskSchema = z.object({
 
 export const updateTaskSchema = createTaskSchema.partial();
 
+export const setTaskAssigneesSchema = z.object({
+  userIds: z.array(z.string()),
+});
+
 export type CreateTaskFormValues = z.infer<typeof createTaskSchema>;
 export type UpdateTaskFormValues = z.infer<typeof updateTaskSchema>;
+export type SetTaskAssigneesValues = z.infer<typeof setTaskAssigneesSchema>;

@@ -28,11 +28,17 @@ export default function ProfilePage() {
 
   const provider = user?.app_metadata?.provider ?? user?.identities?.[0]?.provider;
   const [fullName, setFullName] = useState('');
+  const [telegramChatId, setTelegramChatId] = useState('');
   const [editing, setEditing] = useState(false);
+  const [editingTelegram, setEditingTelegram] = useState(false);
 
   useEffect(() => {
     setFullName(fallbackName);
   }, [fallbackName]);
+
+  useEffect(() => {
+    setTelegramChatId(profile?.telegram_chat_id ?? '');
+  }, [profile?.telegram_chat_id]);
 
   const handleSave = async () => {
     const trimmed = fullName.trim();
@@ -44,6 +50,16 @@ export default function ProfilePage() {
   const handleCancel = () => {
     setFullName(fallbackName);
     setEditing(false);
+  };
+
+  const handleTelegramSave = async () => {
+    await updateProfile({ telegramChatId: telegramChatId.trim() || null });
+    setEditingTelegram(false);
+  };
+
+  const handleTelegramCancel = () => {
+    setTelegramChatId(profile?.telegram_chat_id ?? '');
+    setEditingTelegram(false);
   };
 
   return (
@@ -137,6 +153,57 @@ export default function ProfilePage() {
             <Input id="email" value={user?.email ?? ''} readOnly disabled className="bg-gray-50" />
             <p className="text-xs text-muted-foreground">
               E-posta adresiniz Supabase hesabinizdan yonetilir.
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="telegramChatId">Telegram Chat ID</Label>
+            {editingTelegram ? (
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <Input
+                  id="telegramChatId"
+                  data-testid="profile-telegram-chat-id"
+                  value={telegramChatId}
+                  onChange={(e) => setTelegramChatId(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') void handleTelegramSave();
+                    if (e.key === 'Escape') handleTelegramCancel();
+                  }}
+                  placeholder="Ornek: 123456789 veya -1001234567890"
+                  autoFocus
+                  disabled={isPending}
+                />
+                <div className="flex gap-2">
+                  <Button onClick={() => void handleTelegramSave()} disabled={isPending}>
+                    {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Kaydet'}
+                  </Button>
+                  <Button variant="ghost" onClick={handleTelegramCancel} disabled={isPending}>
+                    Iptal
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <Input
+                  id="telegramChatId"
+                  value={profile?.telegram_chat_id ?? ''}
+                  readOnly
+                  className="bg-gray-50"
+                  placeholder="Telegram chat ID baglanmadi"
+                />
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setTelegramChatId(profile?.telegram_chat_id ?? '');
+                    setEditingTelegram(true);
+                  }}
+                >
+                  Duzenle
+                </Button>
+              </div>
+            )}
+            <p className="text-xs text-muted-foreground">
+              Gorev atandiginda Telegram bildirimi almak icin chat ID bilginizi kaydedin.
             </p>
           </div>
 

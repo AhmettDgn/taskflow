@@ -43,7 +43,8 @@ create table if not exists public.profiles (
   id         uuid primary key references auth.users(id) on delete cascade,
   email      text not null,
   full_name  text,
-  avatar_url text
+  avatar_url text,
+  telegram_chat_id text
 );
 
 alter table public.profiles enable row level security;

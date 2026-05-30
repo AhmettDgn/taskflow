@@ -148,6 +148,32 @@ export function useRemoveTeamMember() {
   });
 }
 
+export function useLeaveTeam() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (teamId: string) => {
+      const res = await fetch(getApiPath(`/teams/${teamId}/leave`), {
+        method: 'POST',
+        credentials: 'include',
+      });
+
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? 'Ekipten ayrılınamadı');
+      return json as { success: boolean; teamDeleted: boolean };
+    },
+    onSuccess: (_data, teamId) => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.teams] });
+      queryClient.removeQueries({ queryKey: [QUERY_KEYS.team, teamId] });
+      queryClient.removeQueries({ queryKey: [QUERY_KEYS.members, teamId] });
+      toast.success('Ekipten ayrıldınız');
+    },
+    onError: (error: Error) => {
+      toast.error(error.message ?? 'Ekipten ayrılınamadı');
+    },
+  });
+}
+
 export function useInviteByEmail(teamId: string) {
   const queryClient = useQueryClient();
 
