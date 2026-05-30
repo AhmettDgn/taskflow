@@ -82,3 +82,28 @@ export interface AssignmentNotificationWarning {
   reason: AssignmentNotificationWarningReason;
   message: string;
 }
+
+export type BoardItemType = 'link' | 'password' | 'note';
+
+export interface BoardItem {
+  id: string;
+  board_id: string;
+  type: BoardItemType;
+  label: string | null;
+  value: string;
+  position: number;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Board {
+  id: string;
+  team_id: string;
+  name: string;
+  position: number;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+  board_items?: BoardItem[];
+}

@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 const tabs = [
   { href: 'board', label: 'Board' },
   { href: 'list', label: 'Liste' },
+  { href: 'boards', label: 'Panolar' },
   { href: 'members', label: 'Uyeler' },
   { href: 'settings', label: 'Ayarlar' },
 ];

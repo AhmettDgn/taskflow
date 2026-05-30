@@ -24,6 +24,7 @@ export const QUERY_KEYS = {
   comments: 'comments',
   notifications: 'notifications',
   profile: 'profile',
+  boards: 'boards',
 } as const;
 
 export const STALE_TIME = 30_000;

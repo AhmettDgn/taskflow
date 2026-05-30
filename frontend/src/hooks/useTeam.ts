@@ -162,11 +162,11 @@ export function useLeaveTeam() {
       if (!res.ok) throw new Error(json.error ?? 'Ekipten ayrılınamadı');
       return json as { success: boolean; teamDeleted: boolean };
     },
-    onSuccess: (_data, teamId) => {
+    onSuccess: (data, teamId) => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.teams] });
       queryClient.removeQueries({ queryKey: [QUERY_KEYS.team, teamId] });
       queryClient.removeQueries({ queryKey: [QUERY_KEYS.members, teamId] });
-      toast.success('Ekipten ayrıldınız');
+      toast.success(data.teamDeleted ? 'Ekipten ayrıldınız ve ekip silindi' : 'Ekipten ayrıldınız');
     },
     onError: (error: Error) => {
       toast.error(error.message ?? 'Ekipten ayrılınamadı');

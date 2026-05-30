@@ -116,9 +116,10 @@ describe('POST /api/teams/[teamId]/leave', () => {
     expect(response.status).toBe(403);
   });
 
-  it('blocks the last admin from leaving while other members remain', async () => {
+  it('deletes the team when the last admin leaves even if other members remain', async () => {
     mockAuthedUser();
     const onMemberDelete = vi.fn();
+    const onTeamDelete = vi.fn();
     createAdminClientMock.mockReturnValue(
       buildAdminMock({
         membership: { id: 'm1', role: 'admin' },
@@ -127,11 +128,16 @@ describe('POST /api/teams/[teamId]/leave', () => {
           { id: 'm2', role: 'member' },
         ],
         onMemberDelete,
+        onTeamDelete,
       })
     );
 
     const response = await POST(teamRequest(), teamParams);
-    expect(response.status).toBe(409);
+    expect(response.status).toBe(200);
+    const json = await response.json();
+    expect(json).toEqual({ success: true, teamDeleted: true });
+    expect(onTeamDelete).toHaveBeenCalled();
+    // Team delete cascades members, so we don't delete the membership row separately.
     expect(onMemberDelete).not.toHaveBeenCalled();
   });
 
