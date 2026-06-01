@@ -1,12 +1,12 @@
 'use client';
 
-import Link from 'next/link';
 import { Calendar, Loader2, Trash2 } from 'lucide-react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { Task } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { useDeleteTask } from '@/hooks/useTasks';
+import { useTaskPanelStore } from '@/store/useTaskPanelStore';
 import {
   Tooltip,
   TooltipContent,
@@ -37,6 +37,7 @@ const priorityLabel: Record<Task['priority'], string> = {
 
 export function TaskCard({ task, teamId, isDragging = false, isOverlay = false }: TaskCardProps) {
   const { mutateAsync: deleteTask, isPending: isDeleting } = useDeleteTask(teamId);
+  const openTask = useTaskPanelStore((state) => state.openTask);
   const {
     attributes,
     listeners,
@@ -109,17 +110,25 @@ export function TaskCard({ task, teamId, isDragging = false, isOverlay = false }
         )}
       />
 
-      {/* Title — clickable link, pointerdown doesn't fire drag when not moved */}
-      <Link
-        href={`/teams/${teamId}/tasks/${task.id}`}
-        prefetch={false}
-        className="block pr-7 text-sm font-medium leading-snug text-foreground transition-colors hover:text-primary pl-3"
+      {/* Title — opens the detail panel; pointerdown doesn't fire drag when not moved */}
+      <button
+        type="button"
         onPointerDown={(e) => e.stopPropagation()}
-        onClick={(e) => dragging && e.preventDefault()}
-        tabIndex={-1}
+        onClick={(e) => {
+          e.stopPropagation();
+          if (!dragging) openTask(task.id);
+        }}
+        className="block w-full pr-7 pl-3 text-left text-sm font-medium leading-snug text-foreground transition-colors hover:text-primary"
       >
         {task.title}
-      </Link>
+      </button>
+
+      {/* Description preview */}
+      {task.description && (
+        <p className="mt-1 line-clamp-2 pl-3 text-xs text-muted-foreground">
+          {task.description}
+        </p>
+      )}
 
       {/* Meta row */}
       <div className="mt-2 flex flex-wrap items-center gap-1.5 pl-3">

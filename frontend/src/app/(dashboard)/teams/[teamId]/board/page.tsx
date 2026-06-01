@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Plus, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { BoardView } from '@/components/tasks/BoardView';
+import { TaskDetailSheet } from '@/components/tasks/TaskDetailSheet';
 import { useTaskFilterStore } from '@/store/useTaskFilterStore';
 import { useTasks } from '@/hooks/useTasks';
 import { useRealtimeTasks } from '@/hooks/useRealtimeTasks';
@@ -43,6 +44,8 @@ export default function BoardPage({ params }: { params: { teamId: string } }) {
       ) : (
         <BoardView tasks={filtered} teamId={teamId} />
       )}
+
+      <TaskDetailSheet teamId={teamId} />
     </div>
   );
 }
