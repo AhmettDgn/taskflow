@@ -184,8 +184,10 @@ if [[ ! -s "${HOME}/.nvm/nvm.sh" ]]; then
 fi
 
 . "${HOME}/.nvm/nvm.sh"
-nvm install 24 >/dev/null
-nvm use 24 >/dev/null
+if ! nvm use 24 >/dev/null 2>&1; then
+  nvm install 24 >/dev/null
+  nvm use 24 >/dev/null
+fi
 if command -v corepack >/dev/null 2>&1; then
   corepack enable >/dev/null 2>&1 || true
 fi
@@ -217,15 +219,8 @@ git pull --ff-only origin "${DEPLOY_BRANCH}"
 log "Installing dependencies"
 run_pnpm install --frozen-lockfile
 
-log "Ensuring Playwright browser binaries are installed"
-run_pnpm --filter frontend exec playwright install chromium
-
-log "Running release gate"
-E2E_BASE_URL="http://127.0.0.1:3121" \
-E2E_BACKEND_BASE_URL="http://127.0.0.1:5121" \
-NEXT_PUBLIC_APP_URL="http://127.0.0.1:3121" \
-run_pnpm test:predeploy
-
+# Quality gate (lint + vitest + build + e2e) runs in GitHub Actions before this
+# job is triggered, so the server only produces the production build and reloads.
 log "Building workspace"
 run_pnpm build
 

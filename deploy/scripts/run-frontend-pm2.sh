@@ -37,8 +37,10 @@ if [[ ! -s "${HOME}/.nvm/nvm.sh" ]]; then
 fi
 
 . "${HOME}/.nvm/nvm.sh"
-nvm install 24 >/dev/null
-nvm use 24 >/dev/null
+if ! nvm use 24 >/dev/null 2>&1; then
+  nvm install 24 >/dev/null
+  nvm use 24 >/dev/null
+fi
 if command -v corepack >/dev/null 2>&1; then
   corepack enable >/dev/null 2>&1 || true
 fi

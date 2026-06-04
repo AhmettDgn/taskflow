@@ -116,25 +116,18 @@ Pushes to `main` can deploy automatically through GitHub Actions once the reposi
 
 Required GitHub repository secrets:
 
-- `DEPLOY_HOST`
-- `DEPLOY_USER`
-- `DEPLOY_PORT`
-- `DEPLOY_PATH`
-- `DEPLOY_SSH_PRIVATE_KEY`
+- `REMOTE_HOST` — deploy target host
+- `REMOTE_USER` — SSH user (e.g. `yusuf`)
+- `SSH_PRIVATE_KEY` — private key used for the SSH deploy
+- `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SERVICE_ROLE_KEY` — used by the CI build and the end-to-end tests (e2e global setup seeds data via the service role key)
 
-Recommended defaults for this project:
+`DEPLOY_PORT` (`22`) and `DEPLOY_PATH` (`/home/yusuf/projects/taskflow`) are set as plain env values in the workflow, not secrets.
 
-- `DEPLOY_USER=yusuf`
-- `DEPLOY_PORT=22`
-- `DEPLOY_PATH=~/projects/taskflow`
+Workflow behavior (`.github/workflows/ci.yml`):
 
-Workflow behavior:
-
-- `verify` runs on GitHub Actions with `pnpm install --frozen-lockfile`, `pnpm test:unit`, `pnpm test:integration`, and `pnpm build`.
-- `deploy` connects over SSH and runs `deploy/scripts/deploy-on-server.sh` on the server.
-- The server only reloads PM2 after `pnpm test:predeploy` and `pnpm build` succeed.
-- The server-side release gate runs on isolated ports `3121` and `5121`, so it validates the freshly pulled code without disturbing the live PM2 processes on `3021` and `5021`.
-- The deploy script installs the required Playwright Chromium binary on the server before running `pnpm test:predeploy`.
+- `validate` runs on pull requests and pushes to `main`: `pnpm install --frozen-lockfile`, `pnpm --filter frontend lint`, `pnpm --filter frontend test:vitest` (unit + integration), `pnpm build`, then Playwright e2e (`@smoke|@functional`). It caches the pnpm store, Playwright browsers, and Next's `.next/cache`.
+- `deploy` runs only on push to `main` and only after `validate` passes; it connects over SSH and runs `deploy/scripts/deploy-on-server.sh`.
+- The server no longer runs lint/tests/e2e or installs Playwright. It only runs `pnpm install --frozen-lockfile`, a single `pnpm build`, and `pm2 startOrReload` — the full quality gate already ran in CI before `deploy` was triggered.
 - If PM2 reload succeeds but the post-deploy health checks fail, the script rolls back to the previous Git commit automatically.
 - Server scripts prefer `corepack pnpm`, but fall back to plain `pnpm` automatically when `corepack` is unavailable.
 - The nginx template is intentionally HTTP-first for the subdomain bootstrap; Certbot injects the final `443 ssl` block after the first certificate issuance.
@@ -151,4 +144,4 @@ Server prerequisites for automated deploy:
 - `curl`
 - root-level `frontend.env` and `backend.env`
 
-The production release gate remains `pnpm test:predeploy`, and it is intentionally enforced on the server before PM2 reload.
+The quality gate (lint, unit/integration, build, e2e) now runs in GitHub Actions (`validate`) before `deploy` is allowed to run; the server no longer enforces it. `pnpm test:predeploy` is still available for running the full gate locally.
