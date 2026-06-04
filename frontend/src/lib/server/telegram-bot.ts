@@ -58,14 +58,30 @@ const TEAM_MARKER = /\[#([0-9a-fA-F-]{36})\]/;
 // ---------------------------------------------------------------------------
 // Low-level send helpers
 // ---------------------------------------------------------------------------
-async function sendMessage(chatId: string | number, text: string, replyMarkup?: TelegramReplyMarkup) {
+async function sendMessage(
+  chatId: string | number,
+  text: string,
+  replyMarkup?: TelegramReplyMarkup,
+  parseMode?: 'HTML' | 'MarkdownV2'
+) {
   const botToken = await resolveTelegramBotToken();
   if (!botToken) return;
   try {
-    await sendTelegramMessage({ chatId: String(chatId), text, botToken, replyMarkup });
+    await sendTelegramMessage({ chatId: String(chatId), text, botToken, replyMarkup, parseMode });
   } catch {
     // Best-effort; never throw out of the webhook handler.
   }
+}
+
+// Escape user-provided text for Telegram HTML parse mode.
+function escapeHtml(text: string) {
+  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// Telegram only renders https links cleanly; behind nginx the public origin can
+// resolve to http (proxy reports x-forwarded-proto=http), so upgrade real hosts.
+function toHttpsUrl(url: string) {
+  return url.replace(/^http:\/\/(?!localhost|127\.0\.0\.1)/i, 'https://');
 }
 
 function statusKeyboard(taskId: string): TelegramReplyMarkup {
@@ -270,17 +286,32 @@ async function sendTeamList(admin: SupabaseClient, chatId: number, user: Resolve
 interface TaskRow {
   id: string;
   title: string;
+  description: string | null;
   status: TaskStatus;
   team_id: string;
 }
 
+const MAX_DESCRIPTION_LENGTH = 500;
+
+// Builds an HTML-formatted task message: the title is a clickable link and the
+// description (if any) is included. Caller must send with parseMode: 'HTML'.
 function buildTaskText(task: TaskRow, teamName: string, taskUrl: string) {
-  return [
-    `📋 ${task.title}`,
-    `Ekip: ${teamName}`,
+  const lines = [
+    `📋 <a href="${toHttpsUrl(taskUrl)}">${escapeHtml(task.title)}</a>`,
+    `Ekip: ${escapeHtml(teamName)}`,
     `Durum: ${STATUS_LABELS[task.status]}`,
-    taskUrl,
-  ].join('\n');
+  ];
+
+  const description = task.description?.trim();
+  if (description) {
+    const truncated =
+      description.length > MAX_DESCRIPTION_LENGTH
+        ? `${description.slice(0, MAX_DESCRIPTION_LENGTH)}…`
+        : description;
+    lines.push(`Açıklama: ${escapeHtml(truncated)}`);
+  }
+
+  return lines.join('\n');
 }
 
 async function sendMyTasks(
@@ -291,7 +322,7 @@ async function sendMyTasks(
 ) {
   const { data } = await admin
     .from('task_assignees')
-    .select('tasks(id, title, status, team_id, teams(name))')
+    .select('tasks(id, title, description, status, team_id, teams(name))')
     .eq('user_id', user.id);
 
   const tasks = (data ?? [])
@@ -309,7 +340,8 @@ async function sendMyTasks(
     await sendMessage(
       chatId,
       buildTaskText(task, task.teams?.name ?? 'Ekip', taskUrl),
-      statusKeyboard(task.id)
+      statusKeyboard(task.id),
+      'HTML'
     );
   }
 }
@@ -331,7 +363,7 @@ async function sendTeamTasks(
 
   const { data } = await admin
     .from('tasks')
-    .select('id, title, status, team_id')
+    .select('id, title, description, status, team_id')
     .eq('team_id', teamId)
     .order('created_at', { ascending: false });
 
@@ -343,7 +375,7 @@ async function sendTeamTasks(
 
   for (const task of tasks) {
     const taskUrl = getPublicRedirectUrl(`/teams/${task.team_id}/tasks/${task.id}`, ctx);
-    await sendMessage(chatId, buildTaskText(task, teamName, taskUrl), statusKeyboard(task.id));
+    await sendMessage(chatId, buildTaskText(task, teamName, taskUrl), statusKeyboard(task.id), 'HTML');
   }
 }
 

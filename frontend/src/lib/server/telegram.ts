@@ -241,11 +241,13 @@ export async function sendTelegramMessage({
   text,
   botToken,
   replyMarkup,
+  parseMode,
 }: {
   chatId: string;
   text: string;
   botToken: string;
   replyMarkup?: TelegramReplyMarkup;
+  parseMode?: 'HTML' | 'MarkdownV2';
 }) {
   const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
     method: 'POST',
@@ -254,6 +256,7 @@ export async function sendTelegramMessage({
       chat_id: chatId,
       text,
       disable_web_page_preview: true,
+      ...(parseMode ? { parse_mode: parseMode } : {}),
       ...(replyMarkup ? { reply_markup: replyMarkup } : {}),
     }),
   });
