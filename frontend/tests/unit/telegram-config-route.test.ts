@@ -11,6 +11,7 @@ const {
   resolveBotUsernameMock,
   resolveTelegramBotTokenMock,
   invalidateCacheMock,
+  getPublicRedirectUrlMock,
 } = vi.hoisted(() => ({
   createClientMock: vi.fn(),
   createAdminClientMock: vi.fn(),
@@ -21,13 +22,14 @@ const {
   resolveBotUsernameMock: vi.fn(),
   resolveTelegramBotTokenMock: vi.fn(),
   invalidateCacheMock: vi.fn(),
+  getPublicRedirectUrlMock: vi.fn(() => 'https://app.example.com/api/telegram/webhook'),
 }));
 
 vi.mock('@/lib/supabase/server', () => ({ createClient: createClientMock }));
 vi.mock('@/lib/supabase/admin', () => ({ createAdminClient: createAdminClientMock }));
 vi.mock('@/lib/server/telegram-admin', () => ({ isTelegramAdmin: isTelegramAdminMock }));
 vi.mock('@/lib/public-origin', () => ({
-  getPublicRedirectUrl: () => 'https://app.example.com/api/telegram/webhook',
+  getPublicRedirectUrl: getPublicRedirectUrlMock,
 }));
 vi.mock('@/lib/server/telegram', () => ({
   telegramGetMe: telegramGetMeMock,
@@ -133,6 +135,29 @@ describe('POST /api/telegram/config', () => {
     );
     expect(settingsQuery.upsert).toHaveBeenCalled();
     expect(invalidateCacheMock).toHaveBeenCalled();
+  });
+
+  it('upgrades an http public origin to https for the webhook URL', async () => {
+    mockAuth({ id: 'user-1', email: 'owner@example.com' });
+    isTelegramAdminMock.mockReturnValue(true);
+    telegramGetMeMock.mockResolvedValue({ id: 1, username: 'TaskFlowBot' });
+    telegramSetWebhookMock.mockResolvedValue({ ok: true });
+    // Behind TLS-terminating nginx the proxy reports http for the public host.
+    getPublicRedirectUrlMock.mockReturnValue('http://taskflow.arslanyusuf.com/api/telegram/webhook');
+
+    const settingsQuery = {
+      select: vi.fn(() => settingsQuery),
+      eq: vi.fn(() => settingsQuery),
+      maybeSingle: vi.fn().mockResolvedValue({ data: null }),
+      upsert: vi.fn().mockResolvedValue({ error: null }),
+    };
+    createAdminClientMock.mockReturnValue({ from: vi.fn(() => settingsQuery) });
+
+    const response = await POST(postRequest({ botToken: '123:ABC' }));
+    expect(response.status).toBe(200);
+    expect(telegramSetWebhookMock).toHaveBeenCalledWith(
+      expect.objectContaining({ url: 'https://taskflow.arslanyusuf.com/api/telegram/webhook' })
+    );
   });
 
   it('returns 400 when setWebhook fails', async () => {

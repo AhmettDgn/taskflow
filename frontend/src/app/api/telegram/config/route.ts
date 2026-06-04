@@ -31,10 +31,15 @@ async function getAuthedAdmin(): Promise<{ user: { email?: string | null } | nul
 }
 
 function buildWebhookUrl(request: Request) {
-  return getPublicRedirectUrl('/api/telegram/webhook', {
+  const url = getPublicRedirectUrl('/api/telegram/webhook', {
     headers: request.headers,
     requestUrl: request.url,
   });
+  // Telegram only accepts HTTPS webhooks. Behind TLS-terminating nginx the
+  // backend proxy reports x-forwarded-proto=http, so getPublicOrigin can yield
+  // an http:// URL for the public host — upgrade the scheme for real hosts
+  // (localhost stays http so local dev / e2e are unaffected).
+  return url.replace(/^http:\/\/(?!localhost|127\.0\.0\.1)/i, 'https://');
 }
 
 /**
