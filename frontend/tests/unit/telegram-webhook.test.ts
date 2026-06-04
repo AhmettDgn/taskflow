@@ -11,7 +11,9 @@ const { createAdminClientMock, sendTelegramMessageMock, answerCallbackQueryMock 
 
 vi.mock('@/lib/supabase/admin', () => ({ createAdminClient: createAdminClientMock }));
 vi.mock('@/lib/server/telegram', () => ({
-  getTelegramBotToken: () => 'test-token',
+  resolveTelegramBotToken: async () => 'test-token',
+  // Mirror the real DB→env fallback so the secret-rejection test keeps working.
+  resolveTelegramWebhookSecret: async () => process.env.TELEGRAM_WEBHOOK_SECRET?.trim() ?? '',
   sendTelegramMessage: sendTelegramMessageMock,
   answerCallbackQuery: answerCallbackQueryMock,
 }));
@@ -24,7 +26,7 @@ vi.mock('@/lib/server/telegram', () => ({
  */
 function makeQuery(awaitResult: unknown, singleResult?: unknown) {
   const q: Record<string, unknown> = {};
-  for (const method of ['select', 'eq', 'order', 'insert', 'update', 'delete', 'limit']) {
+  for (const method of ['select', 'eq', 'neq', 'gt', 'order', 'insert', 'update', 'delete', 'limit']) {
     q[method] = vi.fn(() => q);
   }
   q.maybeSingle = vi.fn(async () => singleResult ?? awaitResult);
@@ -86,6 +88,35 @@ describe('POST /api/telegram/webhook', () => {
     const text = sendTelegramMessageMock.mock.calls[0][0].text as string;
     expect(text).toContain('99');
     expect(text).toContain('bağlı değil');
+  });
+
+  it('links an account from a /start deep-link token', async () => {
+    mockAdmin({
+      profiles: makeQuery(
+        { error: null },
+        { data: { id: 'user-1', full_name: 'Ada', email: 'ada@example.com' } }
+      ),
+    });
+
+    const response = await POST(
+      webhookRequest({ message: { message_id: 1, chat: { id: 7 }, text: '/start tok-abc' } })
+    );
+
+    expect(response.status).toBe(200);
+    const texts = sendTelegramMessageMock.mock.calls.map((call) => call[0].text as string);
+    expect(texts.some((text) => text.includes('bağlandı'))).toBe(true);
+  });
+
+  it('rejects an expired or unknown /start token', async () => {
+    mockAdmin({ profiles: makeQuery({ error: null }, { data: null }) });
+
+    const response = await POST(
+      webhookRequest({ message: { message_id: 1, chat: { id: 7 }, text: '/start bad-token' } })
+    );
+
+    expect(response.status).toBe(200);
+    const texts = sendTelegramMessageMock.mock.calls.map((call) => call[0].text as string);
+    expect(texts.some((text) => text.includes('geçersiz veya süresi dolmuş'))).toBe(true);
   });
 
   it('lists tasks assigned to a linked user for /gorevlerim', async () => {

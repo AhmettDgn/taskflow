@@ -1,3 +1,4 @@
+import { createAdminClient } from '@/lib/supabase/admin';
 import { getPublicRedirectUrl } from '@/lib/public-origin';
 import { formatDate } from '@/lib/utils';
 import type {
@@ -76,6 +77,165 @@ export function getTelegramBotToken() {
   return process.env.TELEGRAM_BOT_TOKEN?.trim() ?? '';
 }
 
+// ---------------------------------------------------------------------------
+// Shared-bot settings resolution (DB → env fallback)
+//
+// The bot token / webhook secret can be configured at runtime through the UI
+// and stored in `app_telegram_settings`. We fall back to env vars so existing
+// deployments keep working. A short in-memory cache avoids hitting the DB on
+// every send; call `invalidateTelegramSettingsCache()` after a config change.
+// ---------------------------------------------------------------------------
+export interface TelegramSettings {
+  botToken: string | null;
+  botUsername: string | null;
+  webhookSecret: string | null;
+  webhookRegisteredAt: string | null;
+}
+
+const SETTINGS_CACHE_TTL_MS = 60_000;
+let settingsCache: { value: TelegramSettings; expiresAt: number } | null = null;
+
+export function invalidateTelegramSettingsCache() {
+  settingsCache = null;
+}
+
+async function loadTelegramSettings(): Promise<TelegramSettings> {
+  if (settingsCache && settingsCache.expiresAt > Date.now()) {
+    return settingsCache.value;
+  }
+
+  let value: TelegramSettings = {
+    botToken: null,
+    botUsername: null,
+    webhookSecret: null,
+    webhookRegisteredAt: null,
+  };
+
+  try {
+    const admin = createAdminClient();
+    const { data } = await admin
+      .from('app_telegram_settings')
+      .select('bot_token, bot_username, webhook_secret, webhook_registered_at')
+      .eq('id', 'default')
+      .maybeSingle();
+
+    if (data) {
+      const row = data as {
+        bot_token: string | null;
+        bot_username: string | null;
+        webhook_secret: string | null;
+        webhook_registered_at: string | null;
+      };
+      value = {
+        botToken: row.bot_token?.trim() || null,
+        botUsername: row.bot_username?.trim() || null,
+        webhookSecret: row.webhook_secret?.trim() || null,
+        webhookRegisteredAt: row.webhook_registered_at,
+      };
+    }
+  } catch {
+    // Missing table or service-role key: fall back to env-only settings below.
+  }
+
+  settingsCache = { value, expiresAt: Date.now() + SETTINGS_CACHE_TTL_MS };
+  return value;
+}
+
+export async function resolveTelegramBotToken(): Promise<string> {
+  const settings = await loadTelegramSettings();
+  return settings.botToken || getTelegramBotToken();
+}
+
+export async function resolveTelegramWebhookSecret(): Promise<string> {
+  const settings = await loadTelegramSettings();
+  return settings.webhookSecret || (process.env.TELEGRAM_WEBHOOK_SECRET?.trim() ?? '');
+}
+
+export async function resolveBotUsername(): Promise<string | null> {
+  const settings = await loadTelegramSettings();
+  if (settings.botUsername) return settings.botUsername;
+
+  const token = settings.botToken || getTelegramBotToken();
+  if (!token) return null;
+
+  const me = await telegramGetMe(token);
+  return me?.username ?? null;
+}
+
+export function buildBotDeepLink(username: string, token: string) {
+  return `https://t.me/${username}?start=${token}`;
+}
+
+// ---------------------------------------------------------------------------
+// Thin Telegram Bot API wrappers (getMe / setWebhook / getWebhookInfo)
+// ---------------------------------------------------------------------------
+export interface TelegramBotInfo {
+  id: number;
+  username?: string;
+  first_name?: string;
+}
+
+/**
+ * Validates a bot token and returns the bot identity. Returns null when the
+ * token is rejected or the request fails — callers treat that as "invalid".
+ */
+export async function telegramGetMe(botToken: string): Promise<TelegramBotInfo | null> {
+  try {
+    const response = await fetch(`https://api.telegram.org/bot${botToken}/getMe`);
+    if (!response.ok) return null;
+    const json = await response.json();
+    return json?.ok ? (json.result as TelegramBotInfo) : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function telegramSetWebhook({
+  botToken,
+  url,
+  secretToken,
+}: {
+  botToken: string;
+  url: string;
+  secretToken: string;
+}): Promise<{ ok: boolean; description?: string }> {
+  try {
+    const response = await fetch(`https://api.telegram.org/bot${botToken}/setWebhook`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        url,
+        secret_token: secretToken,
+        allowed_updates: ['message', 'callback_query'],
+        drop_pending_updates: true,
+      }),
+    });
+    const json = await response.json().catch(() => null);
+    if (json?.ok) return { ok: true };
+    return { ok: false, description: json?.description ?? `Telegram API hatasi (${response.status})` };
+  } catch (error) {
+    return { ok: false, description: error instanceof Error ? error.message : 'Webhook kaydedilemedi' };
+  }
+}
+
+export interface TelegramWebhookInfo {
+  url?: string;
+  has_custom_certificate?: boolean;
+  pending_update_count?: number;
+  last_error_message?: string;
+}
+
+export async function telegramGetWebhookInfo(botToken: string): Promise<TelegramWebhookInfo | null> {
+  try {
+    const response = await fetch(`https://api.telegram.org/bot${botToken}/getWebhookInfo`);
+    if (!response.ok) return null;
+    const json = await response.json();
+    return json?.ok ? (json.result as TelegramWebhookInfo) : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function sendTelegramMessage({
   chatId,
   text,
@@ -119,7 +279,7 @@ export async function sendTelegramMessage({
  * tapped inline button. Best-effort — failures are swallowed.
  */
 export async function answerCallbackQuery(callbackQueryId: string, text?: string) {
-  const botToken = getTelegramBotToken();
+  const botToken = await resolveTelegramBotToken();
   if (!botToken) return;
 
   try {
@@ -153,7 +313,7 @@ export async function sendTaskAssignmentNotifications({
   headers: Headers;
   requestUrl: string;
 }): Promise<AssignmentNotificationWarning[]> {
-  const botToken = process.env.TELEGRAM_BOT_TOKEN?.trim() ?? '';
+  const botToken = await resolveTelegramBotToken();
   const taskUrl = getPublicRedirectUrl(`/teams/${teamId}/tasks/${task.id}`, {
     headers,
     requestUrl,
@@ -271,7 +431,7 @@ export async function sendBoardItemNotifications({
   headers: Headers;
   requestUrl: string;
 }) {
-  const botToken = getTelegramBotToken();
+  const botToken = await resolveTelegramBotToken();
   if (!botToken) return;
 
   const boardUrl = getPublicRedirectUrl(`/teams/${teamId}/boards`, { headers, requestUrl });

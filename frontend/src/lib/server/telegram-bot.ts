@@ -2,7 +2,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { getPublicRedirectUrl } from '@/lib/public-origin';
 import {
   answerCallbackQuery,
-  getTelegramBotToken,
+  resolveTelegramBotToken,
   sendTelegramMessage,
   type TelegramReplyMarkup,
 } from '@/lib/server/telegram';
@@ -59,7 +59,7 @@ const TEAM_MARKER = /\[#([0-9a-fA-F-]{36})\]/;
 // Low-level send helpers
 // ---------------------------------------------------------------------------
 async function sendMessage(chatId: string | number, text: string, replyMarkup?: TelegramReplyMarkup) {
-  const botToken = getTelegramBotToken();
+  const botToken = await resolveTelegramBotToken();
   if (!botToken) return;
   try {
     await sendTelegramMessage({ chatId: String(chatId), text, botToken, replyMarkup });
@@ -105,6 +105,65 @@ async function resolveTelegramUser(
   return (data as ResolvedUser | null) ?? null;
 }
 
+function linkSuccessMessage(name: string) {
+  return [
+    `✅ Merhaba ${name}, TaskFlow hesabın bu Telegram'a bağlandı.`,
+    '',
+    'Artık görev atamalarında ve pano güncellemelerinde bildirim alacaksın.',
+    'Komutlar için /yardim yazabilirsin.',
+  ].join('\n');
+}
+
+/**
+ * Links the Telegram chat to the TaskFlow account that generated `token` via the
+ * profile "Connect" button. The token is single-use and time-limited; once it
+ * matches an unexpired profile we store the chat id and clear the token.
+ */
+async function linkAccountByToken(admin: SupabaseClient, chatId: number, token: string) {
+  const { data } = await admin
+    .from('profiles')
+    .select('id, full_name, email')
+    .eq('telegram_link_token', token)
+    .gt('telegram_link_token_expires_at', new Date().toISOString())
+    .maybeSingle();
+
+  const profile = data as ResolvedUser | null;
+  if (!profile) {
+    await sendMessage(
+      chatId,
+      [
+        'Bağlantı isteği geçersiz veya süresi dolmuş.',
+        '',
+        'TaskFlow → Profil sayfasından "Telegram\'a Bağlan" butonuna tekrar tıklayın.',
+      ].join('\n')
+    );
+    return;
+  }
+
+  // A chat id must map to a single account — detach it from any other profile first.
+  await admin
+    .from('profiles')
+    .update({ telegram_chat_id: null })
+    .eq('telegram_chat_id', String(chatId))
+    .neq('id', profile.id);
+
+  const { error } = await admin
+    .from('profiles')
+    .update({
+      telegram_chat_id: String(chatId),
+      telegram_link_token: null,
+      telegram_link_token_expires_at: null,
+    })
+    .eq('id', profile.id);
+
+  if (error) {
+    await sendMessage(chatId, 'Bağlantı kaydedilemedi, lütfen tekrar deneyin.');
+    return;
+  }
+
+  await sendMessage(chatId, linkSuccessMessage(profile.full_name?.trim() || profile.email));
+}
+
 async function isTeamMember(admin: SupabaseClient, teamId: string, userId: string) {
   const { data } = await admin
     .from('team_members')
@@ -119,9 +178,10 @@ function notLinkedMessage(chatId: number) {
   return [
     'TaskFlow hesabınız bu Telegram ile bağlı değil.',
     '',
-    `Chat ID'niz: ${chatId}`,
+    'TaskFlow → Profil sayfasına gidip "Telegram\'a Bağlan" butonuna tıklayın;',
+    'açılan bağlantıdan Start\'a basınca hesabınız otomatik bağlanır.',
     '',
-    'TaskFlow → Profil sayfasına gidip bu Chat ID değerini kaydedin, ardından /start yazın.',
+    `Alternatif: Chat ID'nizi (${chatId}) profilde "Gelişmiş" alanına elle kaydedebilirsiniz.`,
   ].join('\n');
 }
 
@@ -143,6 +203,16 @@ function helpMessage() {
 async function handleMessage(admin: SupabaseClient, message: TgMessage, ctx: TelegramContext) {
   const chatId = message.chat.id;
   const text = (message.text ?? '').trim();
+  const parts = text.split(/\s+/);
+  const command = parts[0]?.toLowerCase();
+
+  // Deep-link account linking: tapping "Connect" in TaskFlow opens
+  // https://t.me/<bot>?start=<token>, which Telegram delivers as "/start <token>".
+  // This must run before the linked-user check, since the chat isn't linked yet.
+  if (command === '/start' && parts[1]) {
+    await linkAccountByToken(admin, chatId, parts[1]);
+    return;
+  }
 
   const user = await resolveTelegramUser(admin, chatId);
   if (!user) {
@@ -160,7 +230,6 @@ async function handleMessage(admin: SupabaseClient, message: TgMessage, ctx: Tel
     }
   }
 
-  const command = text.split(/\s+/)[0]?.toLowerCase();
   switch (command) {
     case '/start':
     case '/yardim':

@@ -14,6 +14,20 @@ export interface Profile {
   telegram_chat_id: string | null;
 }
 
+export interface TelegramLinkResponse {
+  deepLink: string;
+  botUsername: string;
+  expiresAt: string;
+}
+
+export interface TelegramConfigStatus {
+  isAdmin: boolean;
+  configured?: boolean;
+  botUsername?: string | null;
+  webhookRegistered?: boolean;
+  webhookUrl?: string;
+}
+
 export interface UserSummary {
   email: string | null;
   fullName: string | null;

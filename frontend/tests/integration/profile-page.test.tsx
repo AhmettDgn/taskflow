@@ -3,10 +3,18 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import ProfilePage from '@/app/(dashboard)/profile/page';
 
-const { useAuthMock, useProfileMock, mutateAsyncMock } = vi.hoisted(() => ({
+const {
+  useAuthMock,
+  useProfileMock,
+  mutateAsyncMock,
+  telegramLinkMock,
+  telegramUnlinkMock,
+} = vi.hoisted(() => ({
   useAuthMock: vi.fn(),
   useProfileMock: vi.fn(),
   mutateAsyncMock: vi.fn(),
+  telegramLinkMock: vi.fn(),
+  telegramUnlinkMock: vi.fn(),
 }));
 
 vi.mock('@/hooks/useAuth', () => ({
@@ -19,6 +27,13 @@ vi.mock('@/hooks/useProfile', () => ({
     mutateAsync: mutateAsyncMock,
     isPending: false,
   }),
+}));
+
+vi.mock('@/hooks/useTelegram', () => ({
+  useTelegramLink: () => ({ mutateAsync: telegramLinkMock, isPending: false }),
+  useTelegramUnlink: () => ({ mutateAsync: telegramUnlinkMock, isPending: false }),
+  useTelegramConfig: () => ({ data: { isAdmin: false }, isLoading: false }),
+  useSaveTelegramConfig: () => ({ mutateAsync: vi.fn(), isPending: false }),
 }));
 
 describe('ProfilePage Telegram settings', () => {
@@ -41,6 +56,7 @@ describe('ProfilePage Telegram settings', () => {
         telegram_chat_id: '12345',
       },
       isLoading: false,
+      refetch: vi.fn(),
     });
 
     mutateAsyncMock.mockReset();
@@ -51,12 +67,17 @@ describe('ProfilePage Telegram settings', () => {
       avatar_url: null,
       telegram_chat_id: '67890',
     });
+
+    telegramLinkMock.mockReset();
+    telegramUnlinkMock.mockReset();
   });
 
-  it('submits trimmed Telegram chat ID updates', async () => {
+  it('submits trimmed Telegram chat ID updates from the advanced editor', async () => {
     const user = userEvent.setup();
     render(<ProfilePage />);
 
+    // Manual entry lives behind the "advanced" collapsible now.
+    await user.click(screen.getByRole('button', { name: /Gelismis/i }));
     await user.click(screen.getAllByRole('button', { name: 'Duzenle' })[1]);
     const telegramInput = screen.getByTestId('profile-telegram-chat-id');
 
@@ -65,5 +86,40 @@ describe('ProfilePage Telegram settings', () => {
     await user.click(screen.getByRole('button', { name: 'Kaydet' }));
 
     expect(mutateAsyncMock).toHaveBeenCalledWith({ telegramChatId: '67890' });
+  });
+
+  it('opens a deep link when an unlinked user clicks Connect', async () => {
+    useProfileMock.mockReturnValue({
+      data: {
+        id: 'user-1',
+        email: 'ada@example.com',
+        full_name: 'Ada Lovelace',
+        avatar_url: null,
+        telegram_chat_id: null,
+      },
+      isLoading: false,
+      refetch: vi.fn(),
+    });
+    telegramLinkMock.mockResolvedValue({
+      deepLink: 'https://t.me/TaskFlowBot?start=tok123',
+      botUsername: 'TaskFlowBot',
+      expiresAt: new Date(Date.now() + 60_000).toISOString(),
+    });
+    const openSpy = vi.fn();
+    vi.stubGlobal('open', openSpy);
+
+    const user = userEvent.setup();
+    render(<ProfilePage />);
+
+    await user.click(screen.getByTestId('telegram-connect'));
+
+    expect(telegramLinkMock).toHaveBeenCalled();
+    expect(openSpy).toHaveBeenCalledWith(
+      'https://t.me/TaskFlowBot?start=tok123',
+      '_blank',
+      'noopener,noreferrer'
+    );
+
+    vi.unstubAllGlobals();
   });
 });

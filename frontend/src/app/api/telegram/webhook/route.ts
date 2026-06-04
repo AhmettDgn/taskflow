@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import { handleTelegramUpdate, type TelegramUpdate } from '@/lib/server/telegram-bot';
+import { resolveTelegramWebhookSecret } from '@/lib/server/telegram';
 
 export async function POST(request: Request) {
   // Telegram sends the configured secret in this header (set via setWebhook).
-  const secret = process.env.TELEGRAM_WEBHOOK_SECRET?.trim();
+  const secret = await resolveTelegramWebhookSecret();
   if (secret) {
     const provided = request.headers.get('x-telegram-bot-api-secret-token');
     if (provided !== secret) {

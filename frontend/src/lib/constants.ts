@@ -25,6 +25,7 @@ export const QUERY_KEYS = {
   notifications: 'notifications',
   profile: 'profile',
   boards: 'boards',
+  telegramConfig: 'telegramConfig',
 } as const;
 
 export const STALE_TIME = 30_000;
