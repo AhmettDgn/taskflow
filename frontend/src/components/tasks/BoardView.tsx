@@ -19,13 +19,19 @@ import {
   sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable';
 import { useDroppable } from '@dnd-kit/core';
-import { Plus, X } from 'lucide-react';
-import type { Task, TaskStatus } from '@/lib/types';
-import { TASK_STATUSES } from '@/lib/constants';
+import { Check, Loader2, Pencil, Plus, X } from 'lucide-react';
+import type { Task, TaskStatus, TaskStatusColumn } from '@/lib/types';
+import { DEFAULT_TASK_STATUSES, normalizeTaskStatusColumns } from '@/lib/task-statuses';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { TaskCard } from './TaskCard';
 import { TaskForm } from './TaskForm';
 import { useUpdateTaskStatus } from '@/hooks/useTasks';
+import {
+  useCreateTaskStatusColumn,
+  useTaskStatuses,
+  useUpdateTaskStatusColumn,
+} from '@/hooks/useTaskStatuses';
 import { cn } from '@/lib/utils';
 
 interface BoardViewProps {
@@ -33,30 +39,111 @@ interface BoardViewProps {
   teamId: string;
 }
 
-const columnHeader: Record<TaskStatus, { dot: string; bg: string; border: string }> = {
-  todo: { dot: 'bg-slate-400', bg: 'bg-slate-50/80', border: 'border-slate-200/80' },
-  in_progress: { dot: 'bg-blue-500', bg: 'bg-blue-50/60', border: 'border-blue-200/60' },
-  done: { dot: 'bg-emerald-500', bg: 'bg-emerald-50/60', border: 'border-emerald-200/60' },
-  on_hold: { dot: 'bg-amber-400', bg: 'bg-amber-50/60', border: 'border-amber-200/60' },
+const columnTone: Record<string, { dot: string; bg: string; border: string }> = {
+  slate: { dot: 'bg-slate-400', bg: 'bg-slate-50/80', border: 'border-slate-200/80' },
+  blue: { dot: 'bg-blue-500', bg: 'bg-blue-50/60', border: 'border-blue-200/60' },
+  emerald: { dot: 'bg-emerald-500', bg: 'bg-emerald-50/60', border: 'border-emerald-200/60' },
+  amber: { dot: 'bg-amber-400', bg: 'bg-amber-50/60', border: 'border-amber-200/60' },
+  rose: { dot: 'bg-rose-500', bg: 'bg-rose-50/60', border: 'border-rose-200/60' },
+  violet: { dot: 'bg-violet-500', bg: 'bg-violet-50/60', border: 'border-violet-200/60' },
+  cyan: { dot: 'bg-cyan-500', bg: 'bg-cyan-50/60', border: 'border-cyan-200/60' },
 };
 
+function getColumnTone(color: string) {
+  return columnTone[color] ?? columnTone.slate;
+}
+
+function EditableColumnTitle({
+  column,
+  onRename,
+  isPending,
+}: {
+  column: TaskStatusColumn;
+  onRename: (value: string, label: string) => void;
+  isPending: boolean;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(column.label);
+
+  useEffect(() => {
+    if (!editing) setDraft(column.label);
+  }, [column.label, editing]);
+
+  const commit = () => {
+    const label = draft.trim();
+    if (label && label !== column.label) {
+      onRename(column.value, label);
+    } else {
+      setDraft(column.label);
+    }
+    setEditing(false);
+  };
+
+  if (editing) {
+    return (
+      <div className="flex min-w-0 flex-1 items-center gap-1">
+        <Input
+          value={draft}
+          onChange={(event) => setDraft(event.target.value)}
+          onBlur={commit}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') commit();
+            if (event.key === 'Escape') {
+              setDraft(column.label);
+              setEditing(false);
+            }
+          }}
+          autoFocus
+          disabled={isPending}
+          className="h-7 min-w-0 px-2 text-sm font-semibold"
+          aria-label="Kolon adını düzenle"
+        />
+        <button
+          type="button"
+          onMouseDown={(event) => event.preventDefault()}
+          onClick={commit}
+          disabled={isPending}
+          className="rounded p-1 text-muted-foreground hover:bg-white hover:text-foreground disabled:opacity-50"
+          aria-label="Kolon adını kaydet"
+        >
+          {isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => setEditing(true)}
+      className="group/title flex min-w-0 flex-1 items-center gap-1 rounded px-1 py-0.5 text-left hover:bg-white/70"
+      title="Kolon adını düzenle"
+    >
+      <h3 className="truncate text-sm font-semibold text-foreground">{column.label}</h3>
+      <Pencil className="h-3 w-3 flex-shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover/title:opacity-100" />
+    </button>
+  );
+}
+
 function Column({
-  colValue,
-  colLabel,
+  column,
   tasks,
   teamId,
   openFormColumn,
   setOpenFormColumn,
+  onRenameColumn,
+  isRenaming,
 }: {
-  colValue: TaskStatus;
-  colLabel: string;
+  column: TaskStatusColumn;
   tasks: Task[];
   teamId: string;
   openFormColumn: TaskStatus | null;
   setOpenFormColumn: (value: TaskStatus | null) => void;
+  onRenameColumn: (value: string, label: string) => void;
+  isRenaming: boolean;
 }) {
-  const { setNodeRef, isOver } = useDroppable({ id: colValue });
-  const styles = columnHeader[colValue];
+  const { setNodeRef, isOver } = useDroppable({ id: column.value });
+  const styles = getColumnTone(column.color);
 
   return (
     <div className="w-[17rem] flex-shrink-0">
@@ -70,7 +157,7 @@ function Column({
       >
         <div className="mb-3 flex items-center gap-2">
           <span className={cn('h-2 w-2 flex-shrink-0 rounded-full', styles.dot)} />
-          <h3 className="text-sm font-semibold text-foreground">{colLabel}</h3>
+          <EditableColumnTitle column={column} onRename={onRenameColumn} isPending={isRenaming} />
           <span className="ml-auto flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-white px-1.5 text-xs font-medium text-muted-foreground shadow-sm">
             {tasks.length}
           </span>
@@ -90,20 +177,22 @@ function Column({
           </div>
         </SortableContext>
 
-        {openFormColumn === colValue ? (
+        {openFormColumn === column.value ? (
           <div className="mt-2 animate-scale-in rounded-lg border border-border bg-white p-3 shadow-card">
             <div className="mb-2 flex items-center justify-between">
               <span className="text-xs font-medium text-muted-foreground">Yeni Görev</span>
               <button
+                type="button"
                 onClick={() => setOpenFormColumn(null)}
                 className="rounded p-0.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                aria-label="Formu kapat"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
             </div>
             <TaskForm
               teamId={teamId}
-              defaultStatus={colValue}
+              defaultStatus={column.value}
               onSuccess={() => setOpenFormColumn(null)}
             />
           </div>
@@ -112,7 +201,7 @@ function Column({
             variant="ghost"
             size="sm"
             className="mt-2 w-full justify-start text-muted-foreground hover:text-foreground"
-            onClick={() => setOpenFormColumn(colValue)}
+            onClick={() => setOpenFormColumn(column.value)}
           >
             <Plus className="mr-1.5 h-3.5 w-3.5" />
             Görev Ekle
@@ -123,12 +212,69 @@ function Column({
   );
 }
 
+function AddColumn({ onAdd, isPending }: { onAdd: (label: string) => void; isPending: boolean }) {
+  const [open, setOpen] = useState(false);
+  const [label, setLabel] = useState('');
+
+  const commit = () => {
+    const trimmed = label.trim();
+    if (!trimmed) return;
+    onAdd(trimmed);
+    setLabel('');
+    setOpen(false);
+  };
+
+  if (open) {
+    return (
+      <div className="w-[17rem] flex-shrink-0 rounded-xl border border-dashed border-border bg-white/80 p-3">
+        <div className="space-y-2">
+          <Input
+            value={label}
+            onChange={(event) => setLabel(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') commit();
+              if (event.key === 'Escape') setOpen(false);
+            }}
+            autoFocus
+            disabled={isPending}
+            placeholder="Kolon adı"
+            className="h-9"
+          />
+          <div className="flex gap-2">
+            <Button size="sm" onClick={commit} disabled={isPending || !label.trim()}>
+              {isPending && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
+              Ekle
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setOpen(false)} disabled={isPending}>
+              İptal
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => setOpen(true)}
+      className="flex h-24 w-[17rem] flex-shrink-0 items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-white/60 text-sm font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:bg-white hover:text-foreground"
+    >
+      <Plus className="h-4 w-4" />
+      Kolon Ekle
+    </button>
+  );
+}
+
 export function BoardView({ tasks, teamId }: BoardViewProps) {
   const [openFormColumn, setOpenFormColumn] = useState<TaskStatus | null>(null);
   const [localTasks, setLocalTasks] = useState<Task[]>(tasks);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
 
+  const { data: taskStatuses = DEFAULT_TASK_STATUSES } = useTaskStatuses(teamId);
   const { mutate: updateStatus } = useUpdateTaskStatus(teamId);
+  const { mutate: createColumn, isPending: isCreatingColumn } = useCreateTaskStatusColumn(teamId);
+  const { mutate: renameColumn, isPending: isRenamingColumn } = useUpdateTaskStatusColumn(teamId);
 
   useEffect(() => {
     setLocalTasks(tasks);
@@ -144,10 +290,22 @@ export function BoardView({ tasks, teamId }: BoardViewProps) {
     setActiveTask(task ?? null);
   };
 
+  const statusColumns = normalizeTaskStatusColumns(taskStatuses);
+  const knownStatusValues = new Set(statusColumns.map((status) => status.value));
+  const orphanColumns = Array.from(
+    new Set(localTasks.map((task) => task.status).filter((status) => !knownStatusValues.has(status)))
+  ).map((status, index) => ({
+    value: status,
+    label: status,
+    color: 'slate',
+    position: statusColumns.length + index,
+  }));
+  const boardColumns = [...statusColumns, ...orphanColumns];
+
   const resolveDropStatus = (overId: string | null, taskItems: Task[]) => {
     if (!overId) return null;
 
-    if (TASK_STATUSES.some((status) => status.value === overId)) {
+    if (boardColumns.some((status) => status.value === overId)) {
       return overId as TaskStatus;
     }
 
@@ -193,7 +351,7 @@ export function BoardView({ tasks, teamId }: BoardViewProps) {
     setLocalTasks(tasks);
   };
 
-  const columns = TASK_STATUSES.map((status) => ({
+  const columns = boardColumns.map((status) => ({
     ...status,
     tasks: localTasks.filter((task) => task.status === status.value),
   }));
@@ -212,14 +370,16 @@ export function BoardView({ tasks, teamId }: BoardViewProps) {
           {columns.map((column) => (
             <Column
               key={column.value}
-              colValue={column.value as TaskStatus}
-              colLabel={column.label}
+              column={column}
               tasks={column.tasks}
               teamId={teamId}
               openFormColumn={openFormColumn}
               setOpenFormColumn={setOpenFormColumn}
+              onRenameColumn={(value, label) => renameColumn({ value, label })}
+              isRenaming={isRenamingColumn}
             />
           ))}
+          <AddColumn onAdd={(label) => createColumn({ label })} isPending={isCreatingColumn} />
         </div>
       </div>
 

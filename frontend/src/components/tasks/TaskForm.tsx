@@ -9,7 +9,9 @@ import { Label } from '@/components/ui/label';
 import { useCreateTask } from '@/hooks/useTasks';
 import { useTeamMembers } from '@/hooks/useTeam';
 import { createTaskSchema, type CreateTaskFormValues } from '@/lib/validations/tasks';
-import { TASK_STATUSES, TASK_PRIORITIES } from '@/lib/constants';
+import { TASK_PRIORITIES } from '@/lib/constants';
+import { DEFAULT_TASK_STATUSES } from '@/lib/task-statuses';
+import { useTaskStatuses } from '@/hooks/useTaskStatuses';
 import { getInitials } from '@/lib/utils';
 
 interface TaskFormProps {
@@ -21,6 +23,7 @@ interface TaskFormProps {
 export function TaskForm({ teamId, defaultStatus = 'todo', onSuccess }: TaskFormProps) {
   const { mutateAsync: createTask, isPending } = useCreateTask(teamId);
   const { data: members = [] } = useTeamMembers(teamId);
+  const { data: taskStatuses = DEFAULT_TASK_STATUSES } = useTaskStatuses(teamId);
 
   const {
     register,
@@ -82,7 +85,7 @@ export function TaskForm({ teamId, defaultStatus = 'todo', onSuccess }: TaskForm
             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             {...register('status')}
           >
-            {TASK_STATUSES.map((s) => (
+            {taskStatuses.map((s) => (
               <option key={s.value} value={s.value}>{s.label}</option>
             ))}
           </select>

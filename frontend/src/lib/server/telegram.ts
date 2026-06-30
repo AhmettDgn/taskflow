@@ -7,15 +7,18 @@ import type {
   Profile,
   Task,
   TaskPriority,
-  TaskStatus,
 } from '@/lib/types';
 
-const STATUS_LABELS: Record<TaskStatus, string> = {
+const STATUS_LABELS: Record<string, string> = {
   todo: 'To Do',
   in_progress: 'In Progress',
   done: 'Done',
   on_hold: 'On Hold',
 };
+
+function getStatusLabel(status: string) {
+  return STATUS_LABELS[status] ?? status;
+}
 
 const PRIORITY_LABELS: Record<TaskPriority, string> = {
   low: 'Low',
@@ -59,7 +62,7 @@ function buildTaskAssignmentMessage({
     `Gorev: ${task.title}`,
     `Ekip: ${teamName}`,
     `Atayan: ${assignerName}`,
-    `Durum: ${STATUS_LABELS[task.status]}`,
+    `Durum: ${getStatusLabel(task.status)}`,
     `Oncelik: ${PRIORITY_LABELS[task.priority]}`,
   ];
 

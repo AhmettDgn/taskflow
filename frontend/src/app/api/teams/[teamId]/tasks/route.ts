@@ -3,6 +3,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
 import { sendTaskAssignmentNotifications } from '@/lib/server/telegram';
 import { createTaskSchema } from '@/lib/validations/tasks';
+import { DEFAULT_TASK_STATUSES } from '@/lib/task-statuses';
 import type { Profile, Task } from '@/lib/types';
 
 function getFallbackFullName(user: {
@@ -10,6 +11,24 @@ function getFallbackFullName(user: {
   user_metadata?: { full_name?: string | null; avatar_url?: string | null };
 }) {
   return user.user_metadata?.full_name ?? user.email?.split('@')[0] ?? null;
+}
+
+
+async function isValidTaskStatus(admin: ReturnType<typeof createAdminClient>, teamId: string, status: string) {
+  const { data, error } = await admin
+    .from('task_statuses')
+    .select('value')
+    .eq('team_id', teamId)
+    .eq('value', status)
+    .maybeSingle();
+
+  if (data) return true;
+
+  if (error) {
+    return DEFAULT_TASK_STATUSES.some((item) => item.value === status);
+  }
+
+  return DEFAULT_TASK_STATUSES.some((item) => item.value === status);
 }
 
 function uniqueIds(userIds: string[] | undefined) {
@@ -72,6 +91,12 @@ export async function POST(
 
     if (!team) {
       return NextResponse.json({ error: 'Ekip bulunamadi' }, { status: 404 });
+    }
+
+    const validStatus = await isValidTaskStatus(admin, teamId, parsed.data.status);
+
+    if (!validStatus) {
+      return NextResponse.json({ error: 'Geçersiz görev durumu' }, { status: 400 });
     }
 
     const assigneeIds = uniqueIds(parsed.data.assignee_ids);
