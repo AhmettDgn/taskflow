@@ -301,6 +301,48 @@ export async function sendTelegramMessage({
   }
 }
 
+export async function editTelegramMessage({
+  chatId,
+  messageId,
+  text,
+  botToken,
+  replyMarkup,
+  parseMode,
+}: {
+  chatId: string;
+  messageId: number;
+  text: string;
+  botToken: string;
+  replyMarkup?: TelegramReplyMarkup;
+  parseMode?: 'HTML' | 'MarkdownV2';
+}) {
+  const response = await fetch(`https://api.telegram.org/bot${botToken}/editMessageText`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      chat_id: chatId,
+      message_id: messageId,
+      text,
+      disable_web_page_preview: true,
+      ...(parseMode ? { parse_mode: parseMode } : {}),
+      ...(replyMarkup ? { reply_markup: replyMarkup } : {}),
+    }),
+  });
+
+  if (!response.ok) {
+    let errorMessage = `Telegram API hatasi (${response.status})`;
+
+    try {
+      const json = await response.json();
+      if (json?.description) {
+        errorMessage = String(json.description);
+      }
+    } catch {}
+
+    throw new Error(errorMessage);
+  }
+}
+
 /**
  * Acknowledges a callback query so Telegram stops showing the loading spinner on the
  * tapped inline button. Best-effort — failures are swallowed.

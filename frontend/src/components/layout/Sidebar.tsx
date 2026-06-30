@@ -93,16 +93,17 @@ export function Sidebar({ user }: SidebarProps) {
         )}
       >
         {!sidebarCollapsed && (
-          <Link href="/dashboard" className="text-[15px] font-bold tracking-tight text-primary">
-            {APP_NAME}
+          <Link
+            href="/dashboard"
+            className="flex items-center gap-2 text-[15px] font-bold tracking-tight text-primary"
+          >
+            <img src="/logo.svg" alt="TaskFlow Logo" className="h-6 w-6 rounded" />
+            <span>{APP_NAME}</span>
           </Link>
         )}
         {sidebarCollapsed && (
-          <Link
-            href="/dashboard"
-            className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-xs font-bold text-primary"
-          >
-            TF
+          <Link href="/dashboard" className="flex h-8 w-8 items-center justify-center">
+            <img src="/logo.svg" alt="TaskFlow Logo" className="h-8 w-8 rounded-lg" />
           </Link>
         )}
       </div>

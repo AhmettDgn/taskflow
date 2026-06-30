@@ -1,10 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { POST } from '@/app/api/telegram/webhook/route';
 
-const { createAdminClientMock, sendTelegramMessageMock, answerCallbackQueryMock } = vi.hoisted(
+const { createAdminClientMock, sendTelegramMessageMock, editTelegramMessageMock, answerCallbackQueryMock } = vi.hoisted(
   () => ({
     createAdminClientMock: vi.fn(),
     sendTelegramMessageMock: vi.fn(),
+    editTelegramMessageMock: vi.fn(),
     answerCallbackQueryMock: vi.fn(),
   })
 );
@@ -15,6 +16,7 @@ vi.mock('@/lib/server/telegram', () => ({
   // Mirror the real DB→env fallback so the secret-rejection test keeps working.
   resolveTelegramWebhookSecret: async () => process.env.TELEGRAM_WEBHOOK_SECRET?.trim() ?? '',
   sendTelegramMessage: sendTelegramMessageMock,
+  editTelegramMessage: editTelegramMessageMock,
   answerCallbackQuery: answerCallbackQueryMock,
 }));
 
@@ -151,7 +153,7 @@ describe('POST /api/telegram/webhook', () => {
       profiles: makeQuery({ data: LINKED_USER }, { data: LINKED_USER }),
       tasks: makeQuery(
         { error: null },
-        { data: { id: 'task-1', title: 'Landing page', team_id: 'team-1' } }
+        { data: { id: 'task-1', title: 'Landing page', status: 'done', team_id: 'team-1', teams: { name: 'Core' } } }
       ),
       team_members: makeQuery({ data: { id: 'm1' } }, { data: { id: 'm1' } }),
     });
@@ -162,15 +164,17 @@ describe('POST /api/telegram/webhook', () => {
           id: 'cb-1',
           from: { id: 5 },
           message: { message_id: 2, chat: { id: 5 } },
-          data: 's:task-1:done',
+          data: 'set_status:task-1:done:my',
         },
       })
     );
 
     expect(response.status).toBe(200);
     expect(answerCallbackQueryMock).toHaveBeenCalled();
-    const texts = sendTelegramMessageMock.mock.calls.map((call) => call[0].text as string);
-    expect(texts.some((text) => text.includes('Done'))).toBe(true);
+    expect(editTelegramMessageMock).toHaveBeenCalledTimes(1);
+    const text = editTelegramMessageMock.mock.calls[0][0].text as string;
+    expect(text).toContain('Landing page');
+    expect(text).toContain('Done');
   });
 
   it('creates a task from a reply carrying the team marker', async () => {

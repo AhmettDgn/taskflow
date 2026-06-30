@@ -4,6 +4,7 @@ import {
   answerCallbackQuery,
   resolveTelegramBotToken,
   sendTelegramMessage,
+  editTelegramMessage,
   type TelegramReplyMarkup,
 } from '@/lib/server/telegram';
 import type { TaskStatus } from '@/lib/types';
@@ -78,6 +79,29 @@ async function sendMessage(
   }
 }
 
+async function editMessage(
+  chatId: string | number,
+  messageId: number,
+  text: string,
+  replyMarkup?: TelegramReplyMarkup,
+  parseMode?: 'HTML' | 'MarkdownV2'
+) {
+  const botToken = await resolveTelegramBotToken();
+  if (!botToken) return;
+  try {
+    await editTelegramMessage({
+      chatId: String(chatId),
+      messageId,
+      text,
+      botToken,
+      replyMarkup,
+      parseMode,
+    });
+  } catch {
+    // Best-effort; never throw out of the webhook handler.
+  }
+}
+
 // Escape user-provided text for Telegram HTML parse mode.
 function escapeHtml(text: string) {
   return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -89,20 +113,7 @@ function toHttpsUrl(url: string) {
   return url.replace(/^http:\/\/(?!localhost|127\.0\.0\.1)/i, 'https://');
 }
 
-function statusKeyboard(taskId: string): TelegramReplyMarkup {
-  return {
-    inline_keyboard: [
-      STATUS_ORDER.slice(0, 2).map((status) => ({
-        text: getStatusLabel(status),
-        callback_data: `s:${taskId}:${status}`,
-      })),
-      STATUS_ORDER.slice(2).map((status) => ({
-        text: getStatusLabel(status),
-        callback_data: `s:${taskId}:${status}`,
-      })),
-    ],
-  };
-}
+
 
 // ---------------------------------------------------------------------------
 // User resolution + membership
@@ -221,7 +232,7 @@ function helpMessage() {
 // ---------------------------------------------------------------------------
 // Message (command) handling
 // ---------------------------------------------------------------------------
-async function handleMessage(admin: SupabaseClient, message: TgMessage, ctx: TelegramContext) {
+async function handleMessage(admin: SupabaseClient, message: TgMessage) {
   const chatId = message.chat.id;
   const text = (message.text ?? '').trim();
   const parts = text.split(/\s+/);
@@ -261,14 +272,14 @@ async function handleMessage(admin: SupabaseClient, message: TgMessage, ctx: Tel
       await sendTeamList(admin, chatId, user);
       return;
     case '/gorevlerim':
-      await sendMyTasks(admin, chatId, user, ctx);
+      await sendMyTasksList(admin, chatId, user, undefined);
       return;
     default:
       await sendMessage(chatId, 'Anlaşılmadı. Komutlar için /yardim yazın.');
   }
 }
 
-async function sendTeamList(admin: SupabaseClient, chatId: number, user: ResolvedUser) {
+async function sendTeamList(admin: SupabaseClient, chatId: number, user: ResolvedUser, messageId?: number) {
   const { data } = await admin
     .from('team_members')
     .select('teams(id, name)')
@@ -279,13 +290,25 @@ async function sendTeamList(admin: SupabaseClient, chatId: number, user: Resolve
     .filter((team): team is { id: string; name: string } => !!team);
 
   if (teams.length === 0) {
-    await sendMessage(chatId, 'Henüz bir ekibe üye değilsiniz.');
+    const text = 'Henüz bir ekibe üye değilsiniz.';
+    if (messageId) {
+      await editMessage(chatId, messageId, text);
+    } else {
+      await sendMessage(chatId, text);
+    }
     return;
   }
 
-  await sendMessage(chatId, 'Ekipleriniz:', {
+  const text = 'Ekipleriniz:';
+  const replyMarkup = {
     inline_keyboard: teams.map((team) => [{ text: team.name, callback_data: `t:${team.id}` }]),
-  });
+  };
+
+  if (messageId) {
+    await editMessage(chatId, messageId, text, replyMarkup);
+  } else {
+    await sendMessage(chatId, text, replyMarkup);
+  }
 }
 
 interface TaskRow {
@@ -296,34 +319,13 @@ interface TaskRow {
   team_id: string;
 }
 
-const MAX_DESCRIPTION_LENGTH = 500;
 
-// Builds an HTML-formatted task message: the title is a clickable link and the
-// description (if any) is included. Caller must send with parseMode: 'HTML'.
-function buildTaskText(task: TaskRow, teamName: string, taskUrl: string) {
-  const lines = [
-    `📋 <a href="${toHttpsUrl(taskUrl)}">${escapeHtml(task.title)}</a>`,
-    `Ekip: ${escapeHtml(teamName)}`,
-    `Durum: ${getStatusLabel(task.status)}`,
-  ];
 
-  const description = task.description?.trim();
-  if (description) {
-    const truncated =
-      description.length > MAX_DESCRIPTION_LENGTH
-        ? `${description.slice(0, MAX_DESCRIPTION_LENGTH)}…`
-        : description;
-    lines.push(`Açıklama: ${escapeHtml(truncated)}`);
-  }
-
-  return lines.join('\n');
-}
-
-async function sendMyTasks(
+async function sendMyTasksList(
   admin: SupabaseClient,
   chatId: number,
   user: ResolvedUser,
-  ctx: TelegramContext
+  messageId?: number
 ) {
   const { data } = await admin
     .from('task_assignees')
@@ -335,28 +337,149 @@ async function sendMyTasks(
     .filter((task): task is TaskRow & { teams?: { name: string } } => !!task);
 
   if (tasks.length === 0) {
-    await sendMessage(chatId, 'Size atanmış görev yok.');
+    const text = 'Size atanmış görev yok.';
+    if (messageId) {
+      await editMessage(chatId, messageId, text);
+    } else {
+      await sendMessage(chatId, text);
+    }
     return;
   }
 
-  await sendMessage(chatId, `Size atanan ${tasks.length} görev:`);
-  for (const task of tasks) {
-    const taskUrl = getPublicRedirectUrl(`/teams/${task.team_id}/tasks/${task.id}`, ctx);
-    await sendMessage(
-      chatId,
-      buildTaskText(task, task.teams?.name ?? 'Ekip', taskUrl),
-      statusKeyboard(task.id),
-      'HTML'
+  const lines = [
+    `📋 <b>Görevlerim (${tasks.length})</b>`,
+    'Detaylar ve durum güncellemesi için görev numarasının altındaki butona tıklayın:',
+    '',
+  ];
+
+  tasks.forEach((task, idx) => {
+    lines.push(
+      `${idx + 1}. <b>${escapeHtml(task.title)}</b>`,
+      `   Durum: <code>${escapeHtml(getStatusLabel(task.status))}</code> | Ekip: <i>${escapeHtml(task.teams?.name ?? 'Ekip')}</i>`,
+      ''
     );
+  });
+
+  const inline_keyboard: { text: string; callback_data: string }[][] = [];
+  let currentRow: { text: string; callback_data: string }[] = [];
+  tasks.forEach((task, idx) => {
+    currentRow.push({
+      text: `${idx + 1}`,
+      callback_data: `view:${task.id}:my`,
+    });
+    if (currentRow.length === 5) {
+      inline_keyboard.push(currentRow);
+      currentRow = [];
+    }
+  });
+  if (currentRow.length > 0) {
+    inline_keyboard.push(currentRow);
+  }
+
+  const text = lines.join('\n');
+  if (messageId) {
+    await editMessage(chatId, messageId, text, { inline_keyboard }, 'HTML');
+  } else {
+    await sendMessage(chatId, text, { inline_keyboard }, 'HTML');
   }
 }
 
-async function sendTeamTasks(
+async function sendTaskDetail(
+  admin: SupabaseClient,
+  chatId: number,
+  user: ResolvedUser,
+  taskId: string,
+  messageId: number,
+  backTo: string,
+  ctx?: TelegramContext
+) {
+  const { data: task } = await admin
+    .from('tasks')
+    .select('id, title, description, status, team_id, teams(name)')
+    .eq('id', taskId)
+    .maybeSingle();
+
+  if (!task) {
+    await sendMessage(chatId, 'Görev bulunamadı.');
+    return;
+  }
+
+  const taskRow = task as unknown as TaskRow & { teams?: { name: string } | null };
+
+  if (!(await isTeamMember(admin, taskRow.team_id, user.id))) {
+    await sendMessage(chatId, 'Bu ekibe erişiminiz yok.');
+    return;
+  }
+
+  const taskUrl = ctx ? getPublicRedirectUrl(`/teams/${taskRow.team_id}/tasks/${taskRow.id}`, ctx) : '';
+
+  const lines = [
+    `📌 <b>Görev Detayları</b>`,
+    ``,
+    `<b>Başlık:</b> ${escapeHtml(taskRow.title)}`,
+    `<b>Ekip:</b> ${escapeHtml(taskRow.teams?.name ?? 'Ekip')}`,
+    `<b>Durum:</b> <code>${escapeHtml(getStatusLabel(taskRow.status))}</code>`,
+  ];
+
+  if (taskRow.description?.trim()) {
+    lines.push(`<b>Açıklama:</b>\n<i>${escapeHtml(taskRow.description.trim())}</i>`);
+  } else {
+    lines.push(`<b>Açıklama:</b> Yok`);
+  }
+
+  if (taskUrl) {
+    lines.push(
+      ``,
+      `🔗 <a href="${toHttpsUrl(taskUrl)}">Web Sitesinde İncele</a>`
+    );
+  }
+
+  const inline_keyboard = [
+    [
+      { text: '⚙️ Durumu Değiştir', callback_data: `status_menu:${taskId}:${backTo}` }
+    ],
+    [
+      { text: '🔙 Listeye Dön', callback_data: `back:${backTo}` }
+    ]
+  ];
+
+  await editMessage(chatId, messageId, lines.join('\n'), { inline_keyboard }, 'HTML');
+}
+
+async function sendStatusMenu(
+  chatId: number,
+  taskId: string,
+  messageId: number,
+  backTo: string
+) {
+  const lines = [
+    `⚙️ <b>Görev Durumunu Seçin</b>`,
+    `Görevin yeni durumunu belirlemek için aşağıdaki butonlardan birine tıklayın:`,
+  ];
+
+  const inline_keyboard = [
+    STATUS_ORDER.slice(0, 2).map((status) => ({
+      text: getStatusLabel(status),
+      callback_data: `set_status:${taskId}:${status}:${backTo}`,
+    })),
+    STATUS_ORDER.slice(2).map((status) => ({
+      text: getStatusLabel(status),
+      callback_data: `set_status:${taskId}:${status}:${backTo}`,
+    })),
+    [
+      { text: '🔙 İptal (Geri Dön)', callback_data: `view:${taskId}:${backTo}` }
+    ]
+  ];
+
+  await editMessage(chatId, messageId, lines.join('\n'), { inline_keyboard }, 'HTML');
+}
+
+async function sendTeamTasksList(
   admin: SupabaseClient,
   chatId: number,
   user: ResolvedUser,
   teamId: string,
-  ctx: TelegramContext
+  messageId: number
 ) {
   if (!(await isTeamMember(admin, teamId, user.id))) {
     await sendMessage(chatId, 'Bu ekibe erişiminiz yok.');
@@ -374,14 +497,51 @@ async function sendTeamTasks(
 
   const tasks = (data ?? []) as TaskRow[];
 
-  await sendMessage(chatId, `"${teamName}" görevleri (${tasks.length}):`, {
-    inline_keyboard: [[{ text: '➕ Görev Ekle', callback_data: `n:${teamId}` }]],
-  });
+  const lines = [
+    `👥 <b>"${escapeHtml(teamName)}" Görevleri (${tasks.length})</b>`,
+    'Detaylar ve durum güncellemesi için görev numarasının altındaki butona tıklayın:',
+    '',
+  ];
 
-  for (const task of tasks) {
-    const taskUrl = getPublicRedirectUrl(`/teams/${task.team_id}/tasks/${task.id}`, ctx);
-    await sendMessage(chatId, buildTaskText(task, teamName, taskUrl), statusKeyboard(task.id), 'HTML');
+  if (tasks.length === 0) {
+    lines.push('<i>Bu ekipte henüz görev bulunmuyor.</i>', '');
+  } else {
+    tasks.forEach((task, idx) => {
+      lines.push(
+        `${idx + 1}. <b>${escapeHtml(task.title)}</b>`,
+        `   Durum: <code>${escapeHtml(getStatusLabel(task.status))}</code>`,
+        ''
+      );
+    });
   }
+
+  const inline_keyboard: { text: string; callback_data: string }[][] = [];
+  if (tasks.length > 0) {
+    let currentRow: { text: string; callback_data: string }[] = [];
+    tasks.forEach((task, idx) => {
+      currentRow.push({
+        text: `${idx + 1}`,
+        callback_data: `view:${task.id}:team:${teamId}`,
+      });
+      if (currentRow.length === 5) {
+        inline_keyboard.push(currentRow);
+        currentRow = [];
+      }
+    });
+    if (currentRow.length > 0) {
+      inline_keyboard.push(currentRow);
+    }
+  }
+
+  inline_keyboard.push([
+    { text: '➕ Görev Ekle', callback_data: `n:${teamId}` }
+  ]);
+  inline_keyboard.push([
+    { text: '🔙 Ekiplere Dön', callback_data: `back:teams` }
+  ]);
+
+  const text = lines.join('\n');
+  await editMessage(chatId, messageId, text, { inline_keyboard }, 'HTML');
 }
 
 // ---------------------------------------------------------------------------
@@ -390,6 +550,7 @@ async function sendTeamTasks(
 async function handleCallback(admin: SupabaseClient, query: TgCallbackQuery, ctx: TelegramContext) {
   const chatId = query.message?.chat.id ?? query.from.id;
   const data = query.data ?? '';
+  const messageId = query.message?.message_id;
 
   const user = await resolveTelegramUser(admin, query.from.id);
   if (!user) {
@@ -400,7 +561,9 @@ async function handleCallback(admin: SupabaseClient, query: TgCallbackQuery, ctx
 
   if (data.startsWith('t:')) {
     await answerCallbackQuery(query.id);
-    await sendTeamTasks(admin, chatId, user, data.slice(2), ctx);
+    if (messageId) {
+      await sendTeamTasksList(admin, chatId, user, data.slice(2), messageId);
+    }
     return;
   }
 
@@ -419,9 +582,50 @@ async function handleCallback(admin: SupabaseClient, query: TgCallbackQuery, ctx
     return;
   }
 
-  if (data.startsWith('s:')) {
-    const [, taskId, status] = data.split(':');
-    await changeTaskStatus(admin, { query, chatId, user, taskId, status: status as TaskStatus });
+  if (data.startsWith('view:')) {
+    await answerCallbackQuery(query.id);
+    if (messageId) {
+      const parts = data.split(':');
+      const taskId = parts[1];
+      const backTo = parts.slice(2).join(':') || 'my';
+      await sendTaskDetail(admin, chatId, user, taskId, messageId, backTo, ctx);
+    }
+    return;
+  }
+
+  if (data.startsWith('status_menu:')) {
+    await answerCallbackQuery(query.id);
+    if (messageId) {
+      const parts = data.split(':');
+      const taskId = parts[1];
+      const backTo = parts.slice(2).join(':') || 'my';
+      await sendStatusMenu(chatId, taskId, messageId, backTo);
+    }
+    return;
+  }
+
+  if (data.startsWith('set_status:')) {
+    const parts = data.split(':');
+    const taskId = parts[1];
+    const status = parts[2] as TaskStatus;
+    const backTo = parts.slice(3).join(':') || 'my';
+    await changeTaskStatus(admin, { query, chatId, user, taskId, status, backTo, ctx });
+    return;
+  }
+
+  if (data.startsWith('back:')) {
+    await answerCallbackQuery(query.id);
+    if (messageId) {
+      const backTo = data.slice(5);
+      if (backTo === 'my') {
+        await sendMyTasksList(admin, chatId, user, messageId);
+      } else if (backTo === 'teams') {
+        await sendTeamList(admin, chatId, user, messageId);
+      } else if (backTo.startsWith('team:')) {
+        const teamId = backTo.slice(5);
+        await sendTeamTasksList(admin, chatId, user, teamId, messageId);
+      }
+    }
     return;
   }
 
@@ -436,12 +640,16 @@ async function changeTaskStatus(
     user,
     taskId,
     status,
+    backTo,
+    ctx,
   }: {
     query: TgCallbackQuery;
     chatId: number;
     user: ResolvedUser;
     taskId: string;
     status: TaskStatus;
+    backTo: string;
+    ctx?: TelegramContext;
   }
 ) {
   if (!STATUS_ORDER.includes(status)) {
@@ -476,8 +684,11 @@ async function changeTaskStatus(
     return;
   }
 
-  await answerCallbackQuery(query.id, `Durum: ${getStatusLabel(status)}`);
-  await sendMessage(chatId, `✅ "${taskRow.title}" → ${getStatusLabel(status)}`);
+  await answerCallbackQuery(query.id, `Durum güncellendi: ${getStatusLabel(status)}`);
+  
+  if (query.message?.message_id) {
+    await sendTaskDetail(admin, chatId, user, taskId, query.message.message_id, backTo, ctx);
+  }
 }
 
 async function createTaskFromReply(
@@ -518,7 +729,9 @@ async function createTaskFromReply(
   }
 
   const created = task as { id: string; title: string };
-  await sendMessage(chatId, `✅ Görev eklendi: "${created.title}"`, statusKeyboard(created.id));
+  // Since it's a new task created from reply, we can show task detail in a new message
+  // and offer a link to view it.
+  await sendMessage(chatId, `✅ Görev eklendi: "${created.title}"`);
 }
 
 // ---------------------------------------------------------------------------
@@ -533,6 +746,6 @@ export async function handleTelegramUpdate(update: TelegramUpdate, ctx: Telegram
   }
 
   if (update.message?.text) {
-    await handleMessage(admin, update.message, ctx);
+    await handleMessage(admin, update.message);
   }
 }
