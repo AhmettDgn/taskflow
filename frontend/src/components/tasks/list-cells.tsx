@@ -11,7 +11,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { TASK_STATUSES, TASK_PRIORITIES } from '@/lib/constants';
+import { TASK_PRIORITIES } from '@/lib/constants';
+import { DEFAULT_TASK_STATUSES, getTaskStatusTone } from '@/lib/task-statuses';
+import { useTaskStatuses } from '@/hooks/useTaskStatuses';
 import { cn, formatDate, getInitials } from '@/lib/utils';
 import {
   useUpdateTaskStatus,
@@ -21,14 +23,17 @@ import {
   useSetTaskAssignees,
 } from '@/hooks/useTasks';
 import { useTeamMembers } from '@/hooks/useTeam';
-import type { Task, TaskPriority, TaskStatus } from '@/lib/types';
+import type { Task, TaskPriority } from '@/lib/types';
 import type { CustomListColumn } from '@/store/useListColumnsStore';
 
-const statusBadgeStyle: Record<TaskStatus, string> = {
-  todo: 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200',
-  in_progress: 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100',
-  done: 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100',
-  on_hold: 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100',
+const statusBadgeStyle: Record<string, string> = {
+  slate: 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200',
+  blue: 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100',
+  emerald: 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100',
+  amber: 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100',
+  rose: 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100',
+  violet: 'bg-violet-50 text-violet-700 border-violet-200 hover:bg-violet-100',
+  cyan: 'bg-cyan-50 text-cyan-700 border-cyan-200 hover:bg-cyan-100',
 };
 
 const priorityBadgeStyle: Record<TaskPriority, string> = {
@@ -127,18 +132,20 @@ interface StatusCellProps {
 export function StatusCell({ task, teamId }: StatusCellProps) {
   const [open, setOpen] = useState(false);
   const { mutate: updateStatus } = useUpdateTaskStatus(teamId);
-  const current = TASK_STATUSES.find((s) => s.value === task.status);
+  const { data: taskStatuses = DEFAULT_TASK_STATUSES } = useTaskStatuses(teamId);
+  const current = taskStatuses.find((s) => s.value === task.status);
+  const tone = getTaskStatusTone(task.status, taskStatuses);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <button type="button" className={cn(cellTrigger, statusBadgeStyle[task.status])}>
+        <button type="button" className={cn(cellTrigger, statusBadgeStyle[tone] ?? statusBadgeStyle.slate)}>
           {current?.label ?? task.status}
         </button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-44 p-1">
         <div className="space-y-0.5">
-          {TASK_STATUSES.map((s) => {
+          {taskStatuses.map((s) => {
             const selected = s.value === task.status;
             return (
               <button

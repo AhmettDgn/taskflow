@@ -1,6 +1,6 @@
 // Placeholder types — replace with: supabase gen types typescript --linked > src/lib/types.ts
 
-export type TaskStatus = 'todo' | 'in_progress' | 'done' | 'on_hold';
+export type TaskStatus = string;
 export type TaskPriority = 'low' | 'medium' | 'high';
 export type TeamRole = 'admin' | 'member';
 export type NotificationType = 'task_assigned' | 'status_changed' | 'comment_added';
@@ -62,6 +62,17 @@ export interface Task {
   created_at: string;
   updated_at: string;
   task_assignees?: TaskAssignee[];
+}
+
+export interface TaskStatusColumn {
+  id?: string;
+  team_id?: string;
+  value: TaskStatus;
+  label: string;
+  color: string;
+  position: number;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface TaskAssignee {

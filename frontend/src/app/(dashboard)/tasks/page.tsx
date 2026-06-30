@@ -9,6 +9,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useTeams } from '@/hooks/useTeam';
 import { useTasks } from '@/hooks/useTasks';
+import { useTaskStatuses } from '@/hooks/useTaskStatuses';
+import { getTaskStatusLabel } from '@/lib/task-statuses';
 import { formatDate } from '@/lib/utils';
 import type { Task } from '@/lib/types';
 
@@ -18,15 +20,10 @@ const priorityConfig: Record<Task['priority'], { label: string; className: strin
   high: { label: 'Yüksek', className: 'bg-red-50 text-red-700 border-red-200' },
 };
 
-const statusLabels: Record<Task['status'], string> = {
-  todo: 'Yapılacak',
-  in_progress: 'Devam Ediyor',
-  done: 'Tamamlandı',
-  on_hold: 'Beklemede',
-};
 
 function TeamTaskSection({ teamId, teamName, search }: { teamId: string; teamName: string; search: string }) {
   const { data: tasks, isLoading } = useTasks(teamId);
+  const { data: taskStatuses } = useTaskStatuses(teamId);
 
   const filtered = (tasks ?? []).filter((task) =>
     !search || task.title.toLowerCase().includes(search.toLowerCase())
@@ -60,7 +57,7 @@ function TeamTaskSection({ teamId, teamName, search }: { teamId: string; teamNam
               >
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">{task.title}</p>
-                  <p className="text-xs text-muted-foreground">{statusLabels[task.status]}</p>
+                  <p className="text-xs text-muted-foreground">{getTaskStatusLabel(task.status, taskStatuses)}</p>
                 </div>
                 <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:flex-nowrap sm:justify-end">
                   <Badge variant="outline" className={priorityConfig[task.priority].className}>

@@ -172,6 +172,7 @@ export function TaskDetailPanel({ teamId, taskId, onClose, onDeleted }: TaskDeta
         <div>
           <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Durum</p>
           <StatusDropdown
+            teamId={teamId}
             value={task.status}
             onChange={(status) => updateTask({ taskId, values: { status } })}
           />

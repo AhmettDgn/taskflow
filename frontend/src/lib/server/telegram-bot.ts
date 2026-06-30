@@ -43,7 +43,7 @@ export interface TelegramContext {
   requestUrl: string;
 }
 
-const STATUS_LABELS: Record<TaskStatus, string> = {
+const STATUS_LABELS: Record<string, string> = {
   todo: 'To Do',
   in_progress: 'In Progress',
   done: 'Done',
@@ -51,6 +51,11 @@ const STATUS_LABELS: Record<TaskStatus, string> = {
 };
 
 const STATUS_ORDER: TaskStatus[] = ['todo', 'in_progress', 'done', 'on_hold'];
+
+function getStatusLabel(status: string) {
+  return STATUS_LABELS[status] ?? status;
+}
+
 
 // Matches the hidden marker embedded in the force-reply prompt: [#<teamId>]
 const TEAM_MARKER = /\[#([0-9a-fA-F-]{36})\]/;
@@ -88,11 +93,11 @@ function statusKeyboard(taskId: string): TelegramReplyMarkup {
   return {
     inline_keyboard: [
       STATUS_ORDER.slice(0, 2).map((status) => ({
-        text: STATUS_LABELS[status],
+        text: getStatusLabel(status),
         callback_data: `s:${taskId}:${status}`,
       })),
       STATUS_ORDER.slice(2).map((status) => ({
-        text: STATUS_LABELS[status],
+        text: getStatusLabel(status),
         callback_data: `s:${taskId}:${status}`,
       })),
     ],
@@ -299,7 +304,7 @@ function buildTaskText(task: TaskRow, teamName: string, taskUrl: string) {
   const lines = [
     `📋 <a href="${toHttpsUrl(taskUrl)}">${escapeHtml(task.title)}</a>`,
     `Ekip: ${escapeHtml(teamName)}`,
-    `Durum: ${STATUS_LABELS[task.status]}`,
+    `Durum: ${getStatusLabel(task.status)}`,
   ];
 
   const description = task.description?.trim();
@@ -471,8 +476,8 @@ async function changeTaskStatus(
     return;
   }
 
-  await answerCallbackQuery(query.id, `Durum: ${STATUS_LABELS[status]}`);
-  await sendMessage(chatId, `✅ "${taskRow.title}" → ${STATUS_LABELS[status]}`);
+  await answerCallbackQuery(query.id, `Durum: ${getStatusLabel(status)}`);
+  await sendMessage(chatId, `✅ "${taskRow.title}" → ${getStatusLabel(status)}`);
 }
 
 async function createTaskFromReply(

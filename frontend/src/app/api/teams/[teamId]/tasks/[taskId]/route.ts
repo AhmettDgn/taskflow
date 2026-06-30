@@ -2,7 +2,26 @@ import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
 import { updateTaskSchema } from '@/lib/validations/tasks';
+import { DEFAULT_TASK_STATUSES } from '@/lib/task-statuses';
 import type { Task } from '@/lib/types';
+
+
+async function isValidTaskStatus(admin: ReturnType<typeof createAdminClient>, teamId: string, status: string) {
+  const { data, error } = await admin
+    .from('task_statuses')
+    .select('value')
+    .eq('team_id', teamId)
+    .eq('value', status)
+    .maybeSingle();
+
+  if (data) return true;
+
+  if (error) {
+    return DEFAULT_TASK_STATUSES.some((item) => item.value === status);
+  }
+
+  return DEFAULT_TASK_STATUSES.some((item) => item.value === status);
+}
 
 export async function PATCH(
   request: Request,
@@ -56,6 +75,14 @@ export async function PATCH(
 
     const { title, description, status, priority, due_date } = parsed.data;
     const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
+
+    if (status !== undefined) {
+      const validStatus = await isValidTaskStatus(admin, teamId, status);
+
+      if (!validStatus) {
+        return NextResponse.json({ error: 'Geçersiz görev durumu' }, { status: 400 });
+      }
+    }
 
     if (title !== undefined) updates.title = title.trim();
     if (description !== undefined) updates.description = description?.trim() || null;

@@ -1,13 +1,9 @@
-import type { TaskStatus, TaskPriority } from './types';
+import type { TaskPriority } from './types';
+import { DEFAULT_TASK_STATUSES } from './task-statuses';
 
 export const APP_NAME = 'TaskFlow';
 
-export const TASK_STATUSES: { value: TaskStatus; label: string; color: string }[] = [
-  { value: 'todo', label: 'To Do', color: 'text-gray-500' },
-  { value: 'in_progress', label: 'In Progress', color: 'text-blue-500' },
-  { value: 'done', label: 'Done', color: 'text-green-500' },
-  { value: 'on_hold', label: 'On Hold', color: 'text-amber-500' },
-];
+export const TASK_STATUSES = DEFAULT_TASK_STATUSES;
 
 export const TASK_PRIORITIES: { value: TaskPriority; label: string }[] = [
   { value: 'low', label: 'Low' },
@@ -25,6 +21,7 @@ export const QUERY_KEYS = {
   notifications: 'notifications',
   profile: 'profile',
   boards: 'boards',
+  taskStatuses: 'taskStatuses',
   telegramConfig: 'telegramConfig',
 } as const;
 
