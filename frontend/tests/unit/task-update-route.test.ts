@@ -112,6 +112,15 @@ describe('PATCH /api/teams/[teamId]/tasks/[taskId]', () => {
           return { select: vi.fn().mockReturnValue(membershipQuery) };
         }
 
+        if (table === 'task_statuses') {
+          const taskStatusesQuery = {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            maybeSingle: vi.fn().mockResolvedValue({ data: { value: 'done' }, error: null }),
+          };
+          return taskStatusesQuery;
+        }
+
         if (table === 'tasks') {
           tasksCallCount += 1;
           if (tasksCallCount === 1) {

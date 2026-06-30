@@ -57,7 +57,7 @@ export async function PATCH(
 
     const { data: task } = await admin
       .from('tasks')
-      .select('id, title, status, priority, due_date, team_id')
+      .select('id, title, status, priority, due_date, team_id, description')
       .eq('id', taskId)
       .eq('team_id', teamId)
       .maybeSingle();

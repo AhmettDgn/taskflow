@@ -45,32 +45,53 @@ export function isValidTelegramChatId(value: string | null) {
   return /^-?\d+$/.test(value);
 }
 
+function escapeHtml(text: string) {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 function buildTaskAssignmentMessage({
   task,
   teamName,
   assignerName,
   taskUrl,
 }: {
-  task: Pick<Task, 'title' | 'status' | 'priority' | 'due_date' | 'id'>;
+  task: Pick<Task, 'title' | 'status' | 'priority' | 'due_date' | 'id' | 'description'>;
   teamName: string;
   assignerName: string;
   taskUrl: string;
 }) {
   const lines = [
-    'Yeni gorev atamasi',
+    `🔔 <b>Yeni Görev Ataması</b>`,
     '',
-    `Gorev: ${task.title}`,
-    `Ekip: ${teamName}`,
-    `Atayan: ${assignerName}`,
-    `Durum: ${getStatusLabel(task.status)}`,
-    `Oncelik: ${PRIORITY_LABELS[task.priority]}`,
+    `<b>Görev:</b> ${escapeHtml(task.title)}`,
+    `<b>Ekip:</b> ${escapeHtml(teamName)}`,
+    `<b>Atayan:</b> ${escapeHtml(assignerName)}`,
   ];
 
-  if (task.due_date) {
-    lines.push(`Vade: ${formatDate(task.due_date)}`);
+  const description = task.description?.trim();
+  if (description) {
+    const truncated =
+      description.length > 120
+        ? `${description.slice(0, 117)}...`
+        : description;
+    lines.push(`<b>Açıklama:</b> ${escapeHtml(truncated)}`);
   }
 
-  lines.push(`Detay: ${taskUrl}`);
+  lines.push(
+    `<b>Durum:</b> ${escapeHtml(getStatusLabel(task.status))}`,
+    `<b>Öncelik:</b> ${escapeHtml(PRIORITY_LABELS[task.priority] || task.priority)}`
+  );
+
+  if (task.due_date) {
+    lines.push(`<b>Vade:</b> ${formatDate(task.due_date)}`);
+  }
+
+  lines.push('', `Detayları incelemek için <b><a href="${taskUrl}">buraya</a></b> tıklayın.`);
   return lines.join('\n');
 }
 
@@ -312,7 +333,7 @@ export async function sendTaskAssignmentNotifications({
   requestUrl,
 }: {
   recipients: Profile[];
-  task: Pick<Task, 'title' | 'status' | 'priority' | 'due_date' | 'id'>;
+  task: Pick<Task, 'title' | 'status' | 'priority' | 'due_date' | 'id' | 'description'>;
   teamName: string;
   assignerName: string;
   teamId: string;
@@ -355,7 +376,7 @@ export async function sendTaskAssignmentNotifications({
       }
 
       try {
-        await sendTelegramMessage({ chatId, text: message, botToken });
+        await sendTelegramMessage({ chatId, text: message, botToken, parseMode: 'HTML' });
         return null;
       } catch {
         return {
