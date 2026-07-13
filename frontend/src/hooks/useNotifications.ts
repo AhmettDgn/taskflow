@@ -95,7 +95,11 @@ export function useRealtimeNotifications(options: NotificationsOptions = {}) {
     let isActive = true;
     let channelCleanup: (() => void) | undefined;
 
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    // getSession lokaldir; getUser() burada her bell mount'unda Supabase Auth'a
+    // ~500ms'lik gereksiz bir network turu ekliyordu. Kanal filtresi kimliğe değil
+    // kullanıcı id'sine ihtiyaç duyar; asıl güvenlik realtime RLS'te.
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      const user = session?.user;
       if (!isActive || !user) return;
 
       const channel = supabase
