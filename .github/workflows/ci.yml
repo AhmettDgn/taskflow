@@ -88,10 +88,56 @@ jobs:
       DEPLOY_USER: ${{ secrets.REMOTE_USER }}
       DEPLOY_PORT: 22
       DEPLOY_PATH: /home/yusuf/projects/taskflow
+      # Production build ortamı: NEXT_PUBLIC_* değerleri client bundle'a build
+      # sırasında gömüldüğü için burada canlı değerlerle build alınır (validate'in
+      # 127.0.0.1'li e2e build'i yeniden kullanılamaz).
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+      NEXT_PUBLIC_APP_URL: https://taskflow.arslanyusuf.com
+      NEXT_PUBLIC_API_BASE_PATH: /api
+      NEXT_STANDALONE: '1'
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 10.11.1
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Cache Next build cache
+        uses: actions/cache@v4
+        with:
+          path: frontend/.next/cache
+          key: nextcache-deploy-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.sha }}
+          restore-keys: |
+            nextcache-deploy-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build standalone production bundle
+        run: pnpm --filter frontend build
+
+      - name: Package standalone bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # Statik dosyalar ve public, standalone çıktısına dahil edilmez; elle kopyalanır.
+          cp -r frontend/.next/static frontend/.next/standalone/frontend/.next/static
+          cp -r frontend/public frontend/.next/standalone/frontend/public
+
+          tar -czf frontend-standalone.tar.gz -C frontend/.next/standalone .
+          ls -lh frontend-standalone.tar.gz
 
       - name: Start SSH agent
         uses: webfactory/ssh-agent@v0.9.0
@@ -112,13 +158,15 @@ jobs:
           mkdir -p "${HOME}/.ssh"
           ssh-keyscan -p "${DEPLOY_PORT}" -H "${DEPLOY_HOST}" >> "${HOME}/.ssh/known_hosts"
 
-      - name: Upload deploy script
+      - name: Upload deploy script and bundle
         shell: bash
         run: |
           set -euo pipefail
 
           scp -P "${DEPLOY_PORT}" deploy/scripts/deploy-on-server.sh \
             "${DEPLOY_USER}@${DEPLOY_HOST}:/tmp/taskflow-deploy-on-server.sh"
+          scp -P "${DEPLOY_PORT}" frontend-standalone.tar.gz \
+            "${DEPLOY_USER}@${DEPLOY_HOST}:/tmp/taskflow-frontend-standalone.tar.gz"
 
       - name: Deploy on server
         shell: bash
@@ -128,4 +176,4 @@ jobs:
           set -euo pipefail
 
           ssh -o BatchMode=yes -p "${DEPLOY_PORT}" "${DEPLOY_USER}@${DEPLOY_HOST}" \
-            "chmod 700 /tmp/taskflow-deploy-on-server.sh && DEPLOY_PATH=${DEPLOY_PATH} DEPLOY_BRANCH=main GITHUB_SHA=${GITHUB_SHA} bash /tmp/taskflow-deploy-on-server.sh"
+            "chmod 700 /tmp/taskflow-deploy-on-server.sh && DEPLOY_PATH=${DEPLOY_PATH} DEPLOY_BRANCH=main GITHUB_SHA=${GITHUB_SHA} FRONTEND_TARBALL=/tmp/taskflow-frontend-standalone.tar.gz bash /tmp/taskflow-deploy-on-server.sh"

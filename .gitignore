@@ -17,6 +17,12 @@ test-results
 .next/
 out/
 
+# deploy artifacts (server-side standalone bundle + CI tarball)
+/frontend-standalone
+/frontend-standalone.new
+/frontend-standalone.prev
+frontend-standalone.tar.gz
+
 # production
 /build
 

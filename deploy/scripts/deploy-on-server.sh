@@ -1,8 +1,15 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
+# Frontend artık sunucuda BUILD EDİLMEZ. CI, standalone production bundle'ını
+# (frontend-standalone.tar.gz) hazırlayıp yükler; bu betik sadece:
+#   1. repoyu günceller (backend/server.js, ecosystem, PM2 runner betikleri için)
+#   2. tarball'ı açıp frontend-standalone dizinini atomik biçimde değiştirir
+#   3. PM2'yi yeniden yükler ve health check yapar (başarısızlıkta rollback)
+
 DEPLOY_PATH_INPUT="${DEPLOY_PATH:-${1:-~/projects/taskflow}}"
 DEPLOY_BRANCH="${DEPLOY_BRANCH:-${2:-main}}"
+FRONTEND_TARBALL="${FRONTEND_TARBALL:-/tmp/taskflow-frontend-standalone.tar.gz}"
 
 expand_home_path() {
   local raw_path="$1"
@@ -21,6 +28,9 @@ expand_home_path() {
 }
 
 ROOT_DIR="$(expand_home_path "${DEPLOY_PATH_INPUT}")"
+STANDALONE_DIR="${ROOT_DIR}/frontend-standalone"
+STANDALONE_NEW="${ROOT_DIR}/frontend-standalone.new"
+STANDALONE_PREV="${ROOT_DIR}/frontend-standalone.prev"
 LOCK_FILE="${TMPDIR:-/tmp}/taskflow-deploy.lock"
 USE_FLOCK=0
 RELOADED=0
@@ -43,21 +53,6 @@ ensure_global_tool() {
   log "Installing missing global tool: ${package_name}"
   npm install -g "${package_name}"
   hash -r
-}
-
-run_pnpm() {
-  if command -v corepack >/dev/null 2>&1; then
-    corepack pnpm "$@"
-    return
-  fi
-
-  if command -v pnpm >/dev/null 2>&1; then
-    pnpm "$@"
-    return
-  fi
-
-  ensure_global_tool pnpm pnpm@10.11.1
-  pnpm "$@"
 }
 
 require_command() {
@@ -148,8 +143,13 @@ rollback() {
 
   log "Deploy failed after PM2 reload. Rolling back to ${PREV_COMMIT}"
   git reset --hard "${PREV_COMMIT}"
-  run_pnpm install --frozen-lockfile
-  run_pnpm build
+
+  if [[ -d "${STANDALONE_PREV}" ]]; then
+    rm -rf "${STANDALONE_DIR}"
+    mv "${STANDALONE_PREV}" "${STANDALONE_DIR}"
+    log "Restored previous standalone bundle"
+  fi
+
   pm2 startOrReload ecosystem.config.cjs --update-env
   pm2 save
   health_check "backend rollback" "http://127.0.0.1:5021/health"
@@ -176,7 +176,12 @@ cleanup() {
 trap on_error ERR
 trap cleanup EXIT
 
-require_command bash git curl
+require_command bash git curl tar
+
+if [[ ! -f "${FRONTEND_TARBALL}" ]]; then
+  printf 'Frontend standalone tarball not found: %s\n' "${FRONTEND_TARBALL}" >&2
+  exit 1
+fi
 
 if [[ ! -s "${HOME}/.nvm/nvm.sh" ]]; then
   printf 'nvm not found at %s/.nvm/nvm.sh\n' "${HOME}" >&2
@@ -187,9 +192,6 @@ fi
 if ! nvm use 24 >/dev/null 2>&1; then
   nvm install 24 >/dev/null
   nvm use 24 >/dev/null
-fi
-if command -v corepack >/dev/null 2>&1; then
-  corepack enable >/dev/null 2>&1 || true
 fi
 ensure_global_tool pm2 pm2
 
@@ -216,13 +218,22 @@ git fetch origin "${DEPLOY_BRANCH}"
 git checkout "${DEPLOY_BRANCH}"
 git pull --ff-only origin "${DEPLOY_BRANCH}"
 
-log "Installing dependencies"
-run_pnpm install --frozen-lockfile
+log "Extracting frontend standalone bundle"
+rm -rf "${STANDALONE_NEW}"
+mkdir -p "${STANDALONE_NEW}"
+tar -xzf "${FRONTEND_TARBALL}" -C "${STANDALONE_NEW}"
 
-# Quality gate (lint + vitest + build + e2e) runs in GitHub Actions before this
-# job is triggered, so the server only produces the production build and reloads.
-log "Building workspace"
-run_pnpm build
+if [[ ! -f "${STANDALONE_NEW}/frontend/server.js" ]]; then
+  printf 'Extracted bundle is missing frontend/server.js\n' >&2
+  exit 1
+fi
+
+log "Swapping standalone bundle into place"
+rm -rf "${STANDALONE_PREV}"
+if [[ -d "${STANDALONE_DIR}" ]]; then
+  mv "${STANDALONE_DIR}" "${STANDALONE_PREV}"
+fi
+mv "${STANDALONE_NEW}" "${STANDALONE_DIR}"
 
 log "Reloading PM2 processes"
 pm2 startOrReload ecosystem.config.cjs --update-env
@@ -233,4 +244,5 @@ health_check "backend" "http://127.0.0.1:5021/health"
 health_check "frontend" "http://127.0.0.1:3021/login"
 
 DEPLOY_COMPLETED=1
+rm -f "${FRONTEND_TARBALL}"
 log "Deployment completed successfully at commit $(git rev-parse HEAD)"
