@@ -10,9 +10,14 @@ function createDashboardSupabase({
   memberships?: Array<{ teams: { id: string; name: string; created_by: string; invite_code: string; created_at: string } | null }>;
   tasks?: Array<{ status: 'todo' | 'in_progress' | 'done' | 'on_hold' }>;
 }) {
+  // Yeni tek-sorgu akışı: teams embed'i tasks(status) içerir.
+  const membershipsWithTasks = memberships.map((membership, index) => ({
+    teams: membership.teams ? { ...membership.teams, tasks: index === 0 ? tasks : [] } : null,
+  }));
+
   return {
     auth: {
-      getUser: async () => ({ data: { user } }),
+      getSession: async () => ({ data: { session: user ? { user } : null } }),
     },
     from: (table: string) => ({
       select: () => ({
@@ -20,17 +25,10 @@ function createDashboardSupabase({
           if (table === 'team_members') {
             return {
               order: async () => ({
-                data: memberships,
+                data: membershipsWithTasks,
                 error: null,
               }),
             };
-          }
-
-          if (table === 'tasks') {
-            return Promise.resolve({
-              data: tasks,
-              error: null,
-            });
           }
 
           throw new Error(`Unsupported table ${table}`);

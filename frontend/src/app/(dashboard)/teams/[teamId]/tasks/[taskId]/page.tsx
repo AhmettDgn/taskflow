@@ -15,17 +15,17 @@ export default async function TaskDetailPage({
   const supabase = createClient();
   const queryClient = createServerQueryClient();
 
-  try {
-    // fetchQuery: görev yoksa/erişim yoksa hata fırlatır → 404
-    await queryClient.fetchQuery({
-      queryKey: [QUERY_KEYS.task, taskId],
-      queryFn: () => fetchTask(supabase as never, taskId),
-    });
-  } catch {
-    notFound();
-  }
-
-  await Promise.all([
+  // Üç sorgu tek network turunda (paralel); görev yoksa/erişim yoksa 404.
+  const [taskResult] = await Promise.all([
+    queryClient
+      .fetchQuery({
+        queryKey: [QUERY_KEYS.task, taskId],
+        queryFn: () => fetchTask(supabase as never, taskId),
+      })
+      .then(
+        () => ({ ok: true as const }),
+        () => ({ ok: false as const })
+      ),
     queryClient.prefetchQuery({
       queryKey: [QUERY_KEYS.members, teamId],
       queryFn: () => fetchTeamMembers(supabase as never, teamId),
@@ -35,6 +35,10 @@ export default async function TaskDetailPage({
       queryFn: () => fetchTaskStatuses(supabase as never, teamId),
     }),
   ]);
+
+  if (!taskResult.ok) {
+    notFound();
+  }
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>

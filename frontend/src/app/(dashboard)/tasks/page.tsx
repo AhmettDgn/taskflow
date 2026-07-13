@@ -1,62 +1,37 @@
 import { HydrationBoundary } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/server';
 import { createServerQueryClient, dehydrate } from '@/lib/server/prefetch';
-import { fetchTeams } from '@/lib/queries/team-data';
+import { fetchTeamsTaskData } from '@/lib/queries/team-data';
 import { QUERY_KEYS } from '@/lib/constants';
-import { normalizeTaskStatusColumns } from '@/lib/task-statuses';
 import { TasksPageClient } from '@/components/tasks/TasksPageClient';
-import type { Task, TaskStatusColumn } from '@/lib/types';
 
-// Eski N+1 akışının (ekip başına 2 client isteği) yerine sunucuda 3 sorgu:
-// ekipler + tüm ekiplerin görevleri (tek in()) + tüm kolonlar (tek in()).
-// Sonuçlar ekip bazında bölünüp mevcut query key'lere seed edilir.
+// Tüm ekipler + görevleri + kolonları tek network turunda gelir (iç içe embed);
+// eski akış ekip başına 2 client isteği, sonrasında da 2 ardışık sunucu sorgusuydu.
 export default async function TasksPage() {
   const supabase = createClient();
   const queryClient = createServerQueryClient();
 
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
+  const userId = session?.user?.id;
 
-  if (user) {
-    const teams = await fetchTeams(supabase as never, user.id);
-    queryClient.setQueryData([QUERY_KEYS.teams], teams);
+  if (userId) {
+    try {
+      const { teams, tasksByTeam, statusesByTeam } = await fetchTeamsTaskData(
+        supabase as never,
+        userId
+      );
 
-    const teamIds = teams.map((team) => team.id);
-
-    if (teamIds.length > 0) {
-      const [tasksResult, statusesResult] = await Promise.all([
-        supabase
-          .from('tasks')
-          .select('*, task_assignees(*, profiles(*))')
-          .in('team_id', teamIds)
-          .order('created_at', { ascending: false }),
-        supabase
-          .from('task_statuses')
-          .select('*')
-          .in('team_id', teamIds)
-          .order('position', { ascending: true }),
-      ]);
-
-      if (!tasksResult.error) {
-        const allTasks = (tasksResult.data ?? []) as Task[];
-        for (const teamId of teamIds) {
-          queryClient.setQueryData(
-            [QUERY_KEYS.tasks, teamId],
-            allTasks.filter((task) => task.team_id === teamId)
-          );
-        }
+      queryClient.setQueryData([QUERY_KEYS.teams], teams);
+      for (const team of teams) {
+        const teamTasks = tasksByTeam.get(team.id);
+        const teamStatuses = statusesByTeam.get(team.id);
+        if (teamTasks) queryClient.setQueryData([QUERY_KEYS.tasks, team.id], teamTasks);
+        if (teamStatuses) queryClient.setQueryData([QUERY_KEYS.taskStatuses, team.id], teamStatuses);
       }
-
-      if (!statusesResult.error) {
-        const allStatuses = (statusesResult.data ?? []) as TaskStatusColumn[];
-        for (const teamId of teamIds) {
-          queryClient.setQueryData(
-            [QUERY_KEYS.taskStatuses, teamId],
-            normalizeTaskStatusColumns(allStatuses.filter((status) => status.team_id === teamId))
-          );
-        }
-      }
+    } catch {
+      // Prefetch başarısızsa client hook'lar kendisi çeker; sayfa yine açılır.
     }
   }
 

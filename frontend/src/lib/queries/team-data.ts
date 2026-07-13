@@ -81,6 +81,86 @@ export async function fetchBoards(supabase: SupabaseClient, teamId: string): Pro
   return boards;
 }
 
+// Tek network turu: board/list sayfalarının ihtiyacı olan her şey (ekip + görevler +
+// kolonlar + üyeler) PostgREST iç içe embed ile tek sorguda gelir. Sunucu↔Supabase
+// RTT'si yüksek ortamlarda 3-4 ayrı sorgunun toplam maliyetini tek tura indirir.
+export interface TeamPageBundle {
+  team: Team;
+  tasks: Task[];
+  taskStatuses: TaskStatusColumn[];
+  members: TeamMember[];
+}
+
+export async function fetchTeamPageBundle(
+  supabase: SupabaseClient,
+  teamId: string
+): Promise<TeamPageBundle> {
+  const { data, error } = await supabase
+    .from('teams')
+    .select(
+      '*, tasks(*, task_assignees(*, profiles(*))), task_statuses(*), team_members(*, profiles(*))'
+    )
+    .eq('id', teamId)
+    .single();
+
+  if (error) throw error;
+
+  const { tasks, task_statuses, team_members, ...team } = data as Team & {
+    tasks: Task[];
+    task_statuses: TaskStatusColumn[];
+    team_members: TeamMember[];
+  };
+
+  return {
+    team: team as Team,
+    // Embed sıralaması garanti değil; client hook'ların beklediği sıralamalar JS'te uygulanır.
+    tasks: [...(tasks ?? [])].sort((a, b) => b.created_at.localeCompare(a.created_at)),
+    taskStatuses: normalizeTaskStatusColumns(task_statuses ?? []),
+    members: [...(team_members ?? [])].sort((a, b) => a.joined_at.localeCompare(b.joined_at)),
+  };
+}
+
+// /tasks sayfası: kullanıcının tüm ekipleri + her ekibin görevleri ve kolonları tek turda.
+export interface TeamsTaskData {
+  teams: Team[];
+  tasksByTeam: Map<string, Task[]>;
+  statusesByTeam: Map<string, TaskStatusColumn[]>;
+}
+
+export async function fetchTeamsTaskData(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<TeamsTaskData> {
+  const { data, error } = await supabase
+    .from('team_members')
+    .select('joined_at, teams(*, tasks(*, task_assignees(*, profiles(*))), task_statuses(*))')
+    .eq('user_id', userId)
+    .order('joined_at', { ascending: true });
+
+  if (error) throw error;
+
+  const teams: Team[] = [];
+  const tasksByTeam = new Map<string, Task[]>();
+  const statusesByTeam = new Map<string, TaskStatusColumn[]>();
+
+  for (const row of data ?? []) {
+    const embedded = row.teams as unknown as
+      | (Team & { tasks?: Task[]; task_statuses?: TaskStatusColumn[] })
+      | null;
+    if (!embedded) continue;
+
+    const { tasks, task_statuses, ...team } = embedded;
+    teams.push(team as Team);
+    tasksByTeam.set(
+      team.id,
+      [...(tasks ?? [])].sort((a, b) => b.created_at.localeCompare(a.created_at))
+    );
+    statusesByTeam.set(team.id, normalizeTaskStatusColumns(task_statuses ?? []));
+  }
+
+  return { teams, tasksByTeam, statusesByTeam };
+}
+
 // Doğrudan RLS'li select; migration 007 her ekibe varsayılan kolonları yazdığı için
 // API route'taki auto-insert davranışına gerek yok. Boş gelirse normalize defaults döner —
 // client hook'un placeholderData davranışıyla aynı sonuç.

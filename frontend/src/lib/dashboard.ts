@@ -36,69 +36,66 @@ export function getTaskStats(statuses: TaskStatus[]) {
   );
 }
 
+type DashboardMembershipRow = {
+  teams: (Team & { tasks?: Array<{ status: TaskStatus }> }) | null;
+};
+
 export async function loadDashboardPageData(supabase: {
-  auth: { getUser: () => Promise<{ data: { user: DashboardUserLike | null } }> };
+  auth: {
+    getSession: () => Promise<{ data: { session: { user: DashboardUserLike } | null } }>;
+  };
   from: (table: string) => {
     select: (value: string) => {
-      eq: (column: string, lookup: string) => unknown;
+      eq: (column: string, lookup: string) => {
+        order: (
+          column: string,
+          options: { ascending: boolean }
+        ) => Promise<{
+          data: DashboardMembershipRow[] | null;
+          error: { message: string } | null;
+        }>;
+      };
     };
   };
 }): Promise<DashboardPageData | DashboardRedirectResult> {
+  // Middleware oturumu zaten doğruladı; burada lokal okuma yeterli (network turu yok).
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
+  const user = session?.user ?? null;
 
   if (!user) {
     return { redirectTo: '/login' as const };
   }
 
-  const membershipsQuery = supabase
+  // Ekipler + görev durumları tek network turunda (iç içe embed);
+  // eski akış 2 ardışık sorgu + 1 auth turuydu.
+  const { data: memberships, error: teamsError } = await supabase
     .from('team_members')
-    .select('joined_at, teams(*)')
-    .eq('user_id', user.id) as {
-    order: (column: string, options: { ascending: boolean }) => Promise<{
-      data: Array<{ teams: Team | null }> | null;
-      error: { message: string } | null;
-    }>;
-  };
-
-  const { data: memberships, error: teamsError } = await membershipsQuery.order('joined_at', {
-    ascending: true,
-  });
+    .select('joined_at, teams(*, tasks(status))')
+    .eq('user_id', user.id)
+    .order('joined_at', { ascending: true });
 
   if (teamsError) {
     throw new Error(teamsError.message);
   }
 
-  const teams = (memberships ?? [])
+  const teamsWithTasks = (memberships ?? [])
     .map((membership) => membership.teams)
-    .filter((team): team is Team => Boolean(team));
+    .filter((team): team is NonNullable<DashboardMembershipRow['teams']> => Boolean(team));
 
-  const firstTeamId = teams[0]?.id ?? '';
-  let taskStatuses: TaskStatus[] = [];
-
-  if (firstTeamId) {
-    const tasksQuery = supabase
-      .from('tasks')
-      .select('status')
-      .eq('team_id', firstTeamId) as Promise<{
-      data: Array<{ status: TaskStatus }> | null;
-      error: { message: string } | null;
-    }>;
-
-    const { data: tasks, error: tasksError } = await tasksQuery;
-
-    if (tasksError) {
-      throw new Error(tasksError.message);
-    }
-
-    taskStatuses = (tasks ?? []).map((task) => task.status);
-  }
+  const teams: Team[] = teamsWithTasks.map((teamWithTasks) => {
+    const team = { ...teamWithTasks };
+    delete team.tasks;
+    return team as Team;
+  });
+  const firstTeam = teamsWithTasks[0];
+  const taskStatuses: TaskStatus[] = (firstTeam?.tasks ?? []).map((task) => task.status);
 
   return {
     firstName: getFirstName(user),
     teams,
-    firstTeamId,
+    firstTeamId: firstTeam?.id ?? '',
     taskStats: getTaskStats(taskStatuses),
   };
 }
