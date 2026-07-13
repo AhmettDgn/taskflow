@@ -27,14 +27,32 @@ export async function middleware(request: NextRequest) {
     }
   );
 
+  // Sıcak yol: cookie'deki oturumu lokal oku (network yok). Access token'ın
+  // süresine 60 sn'den fazla varsa Supabase Auth'a gitmeden geçir — bu, her
+  // sayfa geçişi ve RSC prefetch'inde ödenen ~300-500ms'lik turu kaldırır.
+  // Token süresi dolmuş/dolmak üzereyse getUser() çağır: hem doğrular hem
+  // refresh edip yeni cookie'leri yazar. Middleware yalnızca yönlendirme
+  // kapısıdır; asıl yetkilendirme RLS ve API route'larındaki getUser()'dadır.
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  const expiresAt = session?.expires_at ?? 0;
+  const isFresh = expiresAt * 1000 - Date.now() > 60_000;
+
+  let hasUser = Boolean(session?.user) && isFresh;
+
+  if (session && !isFresh) {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    hasUser = Boolean(user);
+  }
 
   const { pathname } = request.nextUrl;
 
   const redirectPath = getMiddlewareRedirectPath({
-    hasUser: Boolean(user),
+    hasUser,
     pathname,
   });
 

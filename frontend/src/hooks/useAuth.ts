@@ -11,8 +11,10 @@ export function useAuth() {
   useEffect(() => {
     const supabase = createClient();
 
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setUser(user);
+    // getSession lokaldir (network turu yok); UI yalnızca kullanıcı kimliğini
+    // göstermek için kullanır, veri erişimini RLS korur.
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
       setLoading(false);
     });
 
