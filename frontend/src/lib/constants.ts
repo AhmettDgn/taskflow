@@ -21,6 +21,7 @@ export const QUERY_KEYS = {
   notifications: 'notifications',
   profile: 'profile',
   boards: 'boards',
+  documents: 'documents',
   taskStatuses: 'taskStatuses',
   telegramConfig: 'telegramConfig',
 } as const;

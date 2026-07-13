@@ -130,3 +130,29 @@ Asagidaki degerler production build sonrasinda lokal `next start` + `curl` ile o
 - Auth ile giris yapilmis tarayicida `/dashboard` ve `/teams/[teamId]/board` icin Lighthouse calistirip gercek LCP/TTFB sayilarini ekle.
 - Board sayfasi halen agir; bir sonraki iterasyonda `BoardView` icindeki drag-and-drop ve veri akisinin daha ince parcali ayrilmasi dusunulebilir.
 - CDN/origin TTFB optimizasyonu repo disi oldugu icin bu turda uygulanmadi.
+
+---
+
+# 2. Tur: Server Prefetch + HydrationBoundary (Temmuz 2026)
+
+## Kritik bulgu: SSR'i bozan config
+- Onceki turda not edilen `Element type is invalid ... digest: 3571718725` hatasinin kok nedeni bulundu:
+  `next.config.mjs` icindeki `experimental.serverComponentsExternalPackages: ['@supabase/supabase-js']`.
+- Bu ayar, supabase client'i import eden TUM client bileşenlerin (Sidebar, Topbar, hook kullanan sayfalar)
+  SSR modul cozumlemesini bozuyor, React shell render'ini iptal edip sayfayi tamamen client render'a dusuruyordu.
+- Ayar kaldirildi; artik tum dashboard route'lari gercek SSR HTML donduruyor (aside/main/gorev icerigi ilk yanitta).
+
+## Uygulanan degisiklikler
+1. **Ortak query fonksiyonlari** — `src/lib/queries/team-data.ts`: `fetchTasks/fetchTask/fetchTeams/fetchTeam/fetchTeamMembers/fetchBoards/fetchTaskStatuses/fetchDocuments`, SupabaseClient parametreli. Hook'lar (`useTasks`, `useTeam`, `useBoards`) ayni fonksiyonlari kullanir — query key/sekil sunucu-istemci birebir ayni.
+2. **Server prefetch** — `src/lib/server/prefetch.ts` (`createServerQueryClient`, istek basina). Board, list, members, boards, task detail sayfalari server component oldu; veriyi `prefetchQuery` + `HydrationBoundary` ile ilk HTML'e gomuyor. Sayfa govdeleri `*PageClient.tsx` bilesenlerine tasindi.
+3. **/tasks N+1 cozumu** — Ekip basina 2 client istegi yerine sunucuda 3 sorgu (teams + tek `in()` tasks + tek `in()` statuses), ekip bazinda cache seed.
+4. **Bundle** — `optimizePackageImports: ['lucide-react']`; `TaskDetailSheet` board/list'te `next/dynamic { ssr:false }`.
+5. **Auth hop azaltma** — dashboard layout ve `getAuthContext` `getUser()` yerine `getSession()` (middleware zaten `getUser()` ile dogruluyor; guvenlik siniri middleware + RLS). API route'lari `getUser()`'da kaldi.
+6. **Route-level loading.tsx** — board/list/members/boards/documents/tasks/task-detail icin skeleton fallback'ler.
+7. **`task-statuses` route'unda `listStatuses`** `src/lib/server/task-status-data.ts`'e tasindi (route + prefetch ortak kullanim).
+
+## Dogrulama (JS kapali tarayici ile SSR HTML kontrolu)
+- `/teams/[teamId]/board`: gorev sayaci + gorev basligi ilk HTML'de, spinner yok.
+- `/tasks`: seed gorev basligi ilk HTML'de, ekip basina skeleton kaskadi yok.
+- `Element type is invalid` logu tamamen kayboldu.
+- 84 vitest + 11 Playwright smoke/functional yesil.

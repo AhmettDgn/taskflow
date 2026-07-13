@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { getApiPath } from '@/lib/api';
 import { createClient } from '@/lib/supabase/client';
 import { QUERY_KEYS, STALE_TIME } from '@/lib/constants';
+import { fetchBoards } from '@/lib/queries/team-data';
 import type { Board, BoardItem } from '@/lib/types';
 import type {
   BoardItemValues,
@@ -29,23 +30,7 @@ async function request<T>(path: string, method: string, body?: unknown, fallback
 export function useBoards(teamId: string) {
   return useQuery<Board[]>({
     queryKey: [QUERY_KEYS.boards, teamId],
-    queryFn: async () => {
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from('boards')
-        .select('*, board_items(*)')
-        .eq('team_id', teamId)
-        .order('position', { ascending: true });
-
-      if (error) throw error;
-
-      const boards = (data ?? []) as Board[];
-      // Keep each board's items in a stable order (the nested select isn't ordered).
-      for (const board of boards) {
-        board.board_items?.sort((a, b) => a.position - b.position);
-      }
-      return boards;
-    },
+    queryFn: () => fetchBoards(createClient(), teamId),
     staleTime: STALE_TIME,
     enabled: !!teamId,
   });

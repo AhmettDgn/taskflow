@@ -16,14 +16,16 @@ interface AuthContext {
 export async function getAuthContext(): Promise<AuthContext> {
   const supabase = createClient();
 
+  // userId yalnızca sorgu scope'u için kullanılıyor; asıl yetkilendirme RLS'te.
+  // getSession() lokaldir — getUser()'ın her sorgudan önce eklediği network turunu kaldırır.
   const {
-    data: { user },
+    data: { session },
     error,
-  } = await supabase.auth.getUser();
+  } = await supabase.auth.getSession();
 
-  if (error || !user) {
+  if (error || !session?.user) {
     throw new Error('Oturum acilmamis');
   }
 
-  return { supabase, userId: user.id };
+  return { supabase, userId: session.user.id };
 }

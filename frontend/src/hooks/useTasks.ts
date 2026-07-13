@@ -6,6 +6,7 @@ import { getApiPath } from '@/lib/api';
 import { createClient } from '@/lib/supabase/client';
 import { QUERY_KEYS, STALE_TIME } from '@/lib/constants';
 import { markLocalMutation } from '@/hooks/useRealtimeTasks';
+import { fetchTask, fetchTasks } from '@/lib/queries/team-data';
 import type { AssignmentNotificationWarning, Task, TaskAssignee, TaskPriority, TaskStatus } from '@/lib/types';
 import type { CreateTaskFormValues, UpdateTaskFormValues } from '@/lib/validations/tasks';
 
@@ -106,17 +107,7 @@ async function getCurrentAssigneeIds({
 export function useTasks(teamId: string) {
   return useQuery<Task[]>({
     queryKey: [QUERY_KEYS.tasks, teamId],
-    queryFn: async () => {
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from('tasks')
-        .select('*, task_assignees(*, profiles(*))')
-        .eq('team_id', teamId)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      return (data ?? []) as Task[];
-    },
+    queryFn: () => fetchTasks(createClient(), teamId),
     staleTime: STALE_TIME,
     enabled: !!teamId,
   });
@@ -125,17 +116,7 @@ export function useTasks(teamId: string) {
 export function useTask(taskId: string) {
   return useQuery<Task>({
     queryKey: [QUERY_KEYS.task, taskId],
-    queryFn: async () => {
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from('tasks')
-        .select('*, task_assignees(*, profiles(*))')
-        .eq('id', taskId)
-        .single();
-
-      if (error) throw error;
-      return data as Task;
-    },
+    queryFn: () => fetchTask(createClient(), taskId),
     staleTime: STALE_TIME,
     enabled: !!taskId,
   });

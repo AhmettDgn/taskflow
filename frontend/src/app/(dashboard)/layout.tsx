@@ -25,11 +25,13 @@ function getUserSummary(user: {
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = createClient();
+  // Middleware bu istek için getUser() ile oturumu zaten doğruladı; burada yalnızca
+  // görüntülenecek ad/e-posta gerekiyor — ikinci bir auth network turu yapma.
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
 
-  const userSummary = getUserSummary(user);
+  const userSummary = getUserSummary(session?.user ?? null);
 
   return (
     <Providers>

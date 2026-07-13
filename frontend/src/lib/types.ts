@@ -122,6 +122,18 @@ export interface BoardItem {
   updated_at: string;
 }
 
+export interface TeamDocument {
+  id: string;
+  team_id: string;
+  name: string;
+  file_path: string;
+  mime_type: string | null;
+  size_bytes: number;
+  uploaded_by: string | null;
+  created_at: string;
+  profiles?: Profile | null;
+}
+
 export interface Board {
   id: string;
   team_id: string;

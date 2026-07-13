@@ -6,6 +6,7 @@ import { getApiPath } from '@/lib/api';
 import { createClient } from '@/lib/supabase/client';
 import { getAuthContext } from '@/lib/supabase/auth-helpers';
 import { QUERY_KEYS, STALE_TIME } from '@/lib/constants';
+import { fetchTeam, fetchTeamMembers, fetchTeams } from '@/lib/queries/team-data';
 import type { Team, TeamMember } from '@/lib/types';
 
 interface UseTeamsOptions {
@@ -19,15 +20,7 @@ export function useTeams(options: UseTeamsOptions = {}) {
     queryKey: [QUERY_KEYS.teams],
     queryFn: async () => {
       const { supabase, userId } = await getAuthContext();
-      const { data, error } = await supabase
-        .from('team_members')
-        .select('teams(*)')
-        .eq('user_id', userId);
-
-      if (error) throw error;
-      return (data ?? [])
-        .map((row) => (row.teams as unknown as Team))
-        .filter(Boolean);
+      return fetchTeams(supabase, userId);
     },
     staleTime: STALE_TIME,
     enabled,
@@ -37,17 +30,7 @@ export function useTeams(options: UseTeamsOptions = {}) {
 export function useTeam(teamId: string) {
   return useQuery<Team>({
     queryKey: [QUERY_KEYS.team, teamId],
-    queryFn: async () => {
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from('teams')
-        .select('*')
-        .eq('id', teamId)
-        .single();
-
-      if (error) throw error;
-      return data as Team;
-    },
+    queryFn: () => fetchTeam(createClient(), teamId),
     staleTime: STALE_TIME,
     enabled: !!teamId,
   });
@@ -56,17 +39,7 @@ export function useTeam(teamId: string) {
 export function useTeamMembers(teamId: string) {
   return useQuery<TeamMember[]>({
     queryKey: [QUERY_KEYS.members, teamId],
-    queryFn: async () => {
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from('team_members')
-        .select('*, profiles(*)')
-        .eq('team_id', teamId)
-        .order('joined_at', { ascending: true });
-
-      if (error) throw error;
-      return (data ?? []) as TeamMember[];
-    },
+    queryFn: () => fetchTeamMembers(createClient(), teamId),
     staleTime: STALE_TIME,
     enabled: !!teamId,
   });

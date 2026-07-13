@@ -1,51 +1,33 @@
-'use client';
+import { HydrationBoundary } from '@tanstack/react-query';
+import { createClient } from '@/lib/supabase/server';
+import { createServerQueryClient, dehydrate } from '@/lib/server/prefetch';
+import { fetchTasks, fetchTaskStatuses, fetchTeamMembers } from '@/lib/queries/team-data';
+import { QUERY_KEYS } from '@/lib/constants';
+import { BoardPageClient } from '@/components/tasks/BoardPageClient';
 
-import Link from 'next/link';
-import { Plus, Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { BoardView } from '@/components/tasks/BoardView';
-import { TaskDetailSheet } from '@/components/tasks/TaskDetailSheet';
-import { useTaskFilterStore } from '@/store/useTaskFilterStore';
-import { useTasks } from '@/hooks/useTasks';
-import { useRealtimeTasks } from '@/hooks/useRealtimeTasks';
-import type { Task } from '@/lib/types';
-
-export default function BoardPage({ params }: { params: { teamId: string } }) {
+export default async function BoardPage({ params }: { params: { teamId: string } }) {
   const { teamId } = params;
-  useRealtimeTasks(teamId);
-  const { data: tasks, isLoading } = useTasks(teamId);
-  const { searchQuery, selectedStatuses, selectedPriorities } = useTaskFilterStore();
+  const supabase = createClient();
+  const queryClient = createServerQueryClient();
 
-  const filtered: Task[] = (tasks ?? []).filter((task) => {
-    if (searchQuery && !task.title.toLowerCase().includes(searchQuery.toLowerCase())) return false;
-    if (selectedStatuses.length && !selectedStatuses.includes(task.status)) return false;
-    if (selectedPriorities.length && !selectedPriorities.includes(task.priority)) return false;
-    return true;
-  });
+  await Promise.all([
+    queryClient.prefetchQuery({
+      queryKey: [QUERY_KEYS.tasks, teamId],
+      queryFn: () => fetchTasks(supabase as never, teamId),
+    }),
+    queryClient.prefetchQuery({
+      queryKey: [QUERY_KEYS.taskStatuses, teamId],
+      queryFn: () => fetchTaskStatuses(supabase as never, teamId),
+    }),
+    queryClient.prefetchQuery({
+      queryKey: [QUERY_KEYS.members, teamId],
+      queryFn: () => fetchTeamMembers(supabase as never, teamId),
+    }),
+  ]);
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground" data-testid="board-task-count">
-          {filtered.length} gorev
-        </p>
-        <Button asChild size="sm">
-          <Link href={`/teams/${teamId}/tasks/new`} data-testid="board-new-task">
-            <Plus className="mr-2 h-4 w-4" />
-            Yeni Gorev
-          </Link>
-        </Button>
-      </div>
-
-      {isLoading ? (
-        <div className="flex h-40 items-center justify-center">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-        </div>
-      ) : (
-        <BoardView tasks={filtered} teamId={teamId} />
-      )}
-
-      <TaskDetailSheet teamId={teamId} />
-    </div>
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <BoardPageClient teamId={teamId} />
+    </HydrationBoundary>
   );
 }

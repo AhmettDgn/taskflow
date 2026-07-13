@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
-import { DEFAULT_TASK_STATUSES, TASK_STATUS_COLORS, createStatusValue, normalizeTaskStatusColumns } from '@/lib/task-statuses';
+import { TASK_STATUS_COLORS, createStatusValue } from '@/lib/task-statuses';
+import { listTaskStatuses } from '@/lib/server/task-status-data';
 import type { TaskStatusColumn } from '@/lib/types';
 
 function cleanLabel(value: unknown) {
@@ -40,44 +41,12 @@ async function requireUserAndMembership(teamId: string) {
   return { user, membership };
 }
 
-async function listStatuses(teamId: string) {
-  const admin = createAdminClient();
-  const { data, error } = await admin
-    .from('task_statuses')
-    .select('*')
-    .eq('team_id', teamId)
-    .order('position', { ascending: true });
-
-  if (error) throw error;
-
-  if (data && data.length > 0) {
-    return normalizeTaskStatusColumns(data as TaskStatusColumn[]);
-  }
-
-  const defaults = DEFAULT_TASK_STATUSES.map((status) => ({
-    team_id: teamId,
-    value: status.value,
-    label: status.label,
-    color: status.color,
-    position: status.position,
-  }));
-
-  const { data: inserted, error: insertError } = await admin
-    .from('task_statuses')
-    .insert(defaults)
-    .select('*')
-    .order('position', { ascending: true });
-
-  if (insertError) throw insertError;
-  return normalizeTaskStatusColumns(inserted as TaskStatusColumn[]);
-}
-
 export async function GET(_request: Request, { params }: { params: { teamId: string } }) {
   try {
     const auth = await requireUserAndMembership(params.teamId);
     if ('error' in auth) return auth.error;
 
-    const statuses = await listStatuses(params.teamId);
+    const statuses = await listTaskStatuses(params.teamId);
     return NextResponse.json({ statuses });
   } catch (error) {
     return NextResponse.json(
@@ -103,7 +72,7 @@ export async function POST(request: Request, { params }: { params: { teamId: str
       return NextResponse.json({ error: 'Kolon adı en fazla 40 karakter olabilir' }, { status: 400 });
     }
 
-    const existing = await listStatuses(params.teamId);
+    const existing = await listTaskStatuses(params.teamId);
     const value = createStatusValue(label, existing.map((status) => status.value));
     const position = existing.reduce((max, status) => Math.max(max, status.position), -1) + 1;
     const color = TASK_STATUS_COLORS[position % TASK_STATUS_COLORS.length];

@@ -69,6 +69,7 @@ authenticated('@functional dashboard shell routes render without error boundarie
     { route: `/teams/${state.teamId}/board`, locator: page.getByTestId(TEST_IDS.boardNewTask) },
     { route: `/teams/${state.teamId}/list`, locator: page.getByTestId(TEST_IDS.teamListHeading) },
     { route: `/teams/${state.teamId}/members`, locator: page.getByTestId(TEST_IDS.teamMembersHeading) },
+    { route: `/teams/${state.teamId}/documents`, locator: page.getByTestId(TEST_IDS.teamDocumentsHeading) },
     { route: `/teams/${state.teamId}/settings`, locator: page.getByTestId(TEST_IDS.teamSettingsHeading) },
     { route: `/teams/${state.teamId}/tasks/new`, locator: page.getByTestId(TEST_IDS.newTaskHeading) },
     { route: `/teams/${state.teamId}/tasks/${state.taskId}`, locator: page.getByTestId(TEST_IDS.taskDetailTitle) },

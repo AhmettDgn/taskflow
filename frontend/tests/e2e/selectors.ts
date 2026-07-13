@@ -17,6 +17,8 @@ export const TEST_IDS = {
   teamCreateHeading: 'team-create-heading',
   teamJoinHeading: 'team-join-heading',
   teamMembersHeading: 'team-members-heading',
+  teamDocumentsHeading: 'team-documents-heading',
+  documentUploadButton: 'document-upload-button',
   teamListHeading: 'team-list-heading',
   teamSettingsHeading: 'team-settings-heading',
   newTaskHeading: 'new-task-heading',
