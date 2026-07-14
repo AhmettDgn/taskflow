@@ -1,8 +1,9 @@
 'use client';
 
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2 } from 'lucide-react';
+import { ListChecks, Loader2, Plus, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -37,6 +38,8 @@ export function TaskForm({ teamId, defaultStatus = 'todo', onSuccess }: TaskForm
   });
 
   const selectedAssignees = watch('assignee_ids') ?? [];
+  const [subtasks, setSubtasks] = useState<string[]>([]);
+  const [subtaskDraft, setSubtaskDraft] = useState('');
 
   const toggleAssignee = (userId: string) => {
     const current = selectedAssignees;
@@ -46,8 +49,19 @@ export function TaskForm({ teamId, defaultStatus = 'todo', onSuccess }: TaskForm
     );
   };
 
+  const addSubtask = () => {
+    const title = subtaskDraft.trim();
+    if (!title || subtasks.length >= 30) return;
+    setSubtasks((current) => [...current, title]);
+    setSubtaskDraft('');
+  };
+
+  const removeSubtask = (index: number) => {
+    setSubtasks((current) => current.filter((_, i) => i !== index));
+  };
+
   const onSubmit = async (values: CreateTaskFormValues) => {
-    await createTask(values);
+    await createTask({ ...values, subtasks });
     onSuccess?.();
   };
 
@@ -114,6 +128,63 @@ export function TaskForm({ teamId, defaultStatus = 'todo', onSuccess }: TaskForm
           disabled={isPending}
           {...register('due_date')}
         />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="subtask-input" className="flex items-center gap-1.5">
+          <ListChecks className="h-3.5 w-3.5" />
+          Alt Görevler
+        </Label>
+
+        {subtasks.length > 0 && (
+          <ul className="space-y-1">
+            {subtasks.map((title, index) => (
+              <li
+                key={`${title}-${index}`}
+                className="flex items-center gap-2 rounded-md border border-border bg-gray-50/60 px-3 py-1.5 text-sm"
+              >
+                <span className="h-3.5 w-3.5 flex-shrink-0 rounded border border-input bg-white" />
+                <span className="flex-1 truncate">{title}</span>
+                <button
+                  type="button"
+                  onClick={() => removeSubtask(index)}
+                  disabled={isPending}
+                  className="text-muted-foreground hover:text-destructive"
+                  aria-label={`${title} alt görevini kaldır`}
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <div className="flex gap-2">
+          <Input
+            id="subtask-input"
+            placeholder="Alt görev ekle ve Enter'a bas..."
+            value={subtaskDraft}
+            disabled={isPending}
+            onChange={(e) => setSubtaskDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                addSubtask();
+              }
+            }}
+          />
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            onClick={addSubtask}
+            disabled={isPending || !subtaskDraft.trim()}
+            aria-label="Alt görev ekle"
+            className="flex-shrink-0"
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       {members.length > 0 && (

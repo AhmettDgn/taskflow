@@ -62,6 +62,17 @@ export interface Task {
   created_at: string;
   updated_at: string;
   task_assignees?: TaskAssignee[];
+  subtasks?: Subtask[];
+}
+
+export interface Subtask {
+  id: string;
+  task_id: string;
+  title: string;
+  is_done: boolean;
+  position: number;
+  created_by: string | null;
+  created_at: string;
 }
 
 export interface TaskStatusColumn {

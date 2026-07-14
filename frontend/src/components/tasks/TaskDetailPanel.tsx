@@ -9,6 +9,7 @@ import { StatusDropdown } from '@/components/tasks/StatusDropdown';
 import { useTask, useUpdateTask, useDeleteTask, useSetTaskAssignees } from '@/hooks/useTasks';
 import { useTeamMembers } from '@/hooks/useTeam';
 import { CommentSection } from '@/components/comments/CommentSection';
+import { SubtaskChecklist } from '@/components/tasks/SubtaskChecklist';
 import { TASK_PRIORITIES } from '@/lib/constants';
 import { formatDate, getInitials } from '@/lib/utils';
 import type { TaskPriority } from '@/lib/types';
@@ -167,6 +168,8 @@ export function TaskDetailPanel({ teamId, taskId, onClose, onDeleted }: TaskDeta
           </p>
         )}
       </div>
+
+      <SubtaskChecklist teamId={teamId} taskId={taskId} subtasks={task.subtasks ?? []} />
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>

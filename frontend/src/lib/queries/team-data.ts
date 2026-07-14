@@ -8,7 +8,7 @@ import type { Board, Task, TaskStatusColumn, Team, TeamDocument, TeamMember } fr
 export async function fetchTasks(supabase: SupabaseClient, teamId: string): Promise<Task[]> {
   const { data, error } = await supabase
     .from('tasks')
-    .select('*, task_assignees(*, profiles(*))')
+    .select('*, task_assignees(*, profiles(*)), subtasks(*)')
     .eq('team_id', teamId)
     .order('created_at', { ascending: false });
 
@@ -19,7 +19,7 @@ export async function fetchTasks(supabase: SupabaseClient, teamId: string): Prom
 export async function fetchTask(supabase: SupabaseClient, taskId: string): Promise<Task> {
   const { data, error } = await supabase
     .from('tasks')
-    .select('*, task_assignees(*, profiles(*))')
+    .select('*, task_assignees(*, profiles(*)), subtasks(*)')
     .eq('id', taskId)
     .single();
 
@@ -98,7 +98,7 @@ export async function fetchTeamPageBundle(
   const { data, error } = await supabase
     .from('teams')
     .select(
-      '*, tasks(*, task_assignees(*, profiles(*))), task_statuses(*), team_members(*, profiles(*))'
+      '*, tasks(*, task_assignees(*, profiles(*)), subtasks(*)), task_statuses(*), team_members(*, profiles(*))'
     )
     .eq('id', teamId)
     .single();
@@ -133,7 +133,7 @@ export async function fetchTeamsTaskData(
 ): Promise<TeamsTaskData> {
   const { data, error } = await supabase
     .from('team_members')
-    .select('joined_at, teams(*, tasks(*, task_assignees(*, profiles(*))), task_statuses(*))')
+    .select('joined_at, teams(*, tasks(*, task_assignees(*, profiles(*)), subtasks(*)), task_statuses(*))')
     .eq('user_id', userId)
     .order('joined_at', { ascending: true });
 

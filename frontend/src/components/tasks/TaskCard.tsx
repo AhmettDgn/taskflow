@@ -1,6 +1,6 @@
 'use client';
 
-import { Calendar, Loader2, Trash2 } from 'lucide-react';
+import { Calendar, ListChecks, Loader2, Trash2 } from 'lucide-react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { Task } from '@/lib/types';
@@ -144,6 +144,22 @@ export function TaskCard({ task, teamId, isDragging = false, isOverlay = false }
           <Badge variant="outline" className="h-5 px-1.5 text-[10px] text-muted-foreground">
             <Calendar className="mr-1 h-2.5 w-2.5" />
             {formatDate(task.due_date)}
+          </Badge>
+        )}
+
+        {task.subtasks && task.subtasks.length > 0 && (
+          <Badge
+            variant="outline"
+            className={cn(
+              'h-5 px-1.5 text-[10px] tabular-nums',
+              task.subtasks.every((subtask) => subtask.is_done)
+                ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                : 'text-muted-foreground'
+            )}
+            title="Alt görevler"
+          >
+            <ListChecks className="mr-1 h-2.5 w-2.5" />
+            {task.subtasks.filter((subtask) => subtask.is_done).length}/{task.subtasks.length}
           </Badge>
         )}
       </div>

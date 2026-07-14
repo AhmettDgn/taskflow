@@ -14,6 +14,15 @@ export const createTaskSchema = z.object({
   priority: z.enum(['low', 'medium', 'high']),
   due_date: z.string().optional(),
   assignee_ids: z.array(z.string()).optional(),
+  subtasks: z
+    .array(
+      z
+        .string()
+        .min(1, 'Alt görev boş olamaz')
+        .max(200, 'Alt görev en fazla 200 karakter olabilir')
+    )
+    .max(30, 'En fazla 30 alt görev eklenebilir')
+    .optional(),
 });
 
 export const updateTaskSchema = createTaskSchema.partial();

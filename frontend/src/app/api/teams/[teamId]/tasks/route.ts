@@ -147,9 +147,29 @@ export async function POST(
       }
     }
 
+    const subtaskTitles = (parsed.data.subtasks ?? [])
+      .map((title) => title.trim())
+      .filter(Boolean);
+
+    if (subtaskTitles.length > 0) {
+      const { error: subtaskError } = await admin.from('subtasks').insert(
+        subtaskTitles.map((title, index) => ({
+          task_id: createdTask.id,
+          title,
+          position: index,
+          created_by: user.id,
+        }))
+      );
+
+      if (subtaskError) {
+        await admin.from('tasks').delete().eq('id', createdTask.id);
+        return NextResponse.json({ error: subtaskError.message }, { status: 400 });
+      }
+    }
+
     const { data: task } = await admin
       .from('tasks')
-      .select('*, task_assignees(*, profiles(*))')
+      .select('*, task_assignees(*, profiles(*)), subtasks(*)')
       .eq('id', createdTask.id)
       .single();
 
